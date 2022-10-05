@@ -3,61 +3,63 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Producto;
 
 class ProductoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        $productos = Producto::all();
+        return $productos;
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    
     public function store(Request $request)
     {
-        //
+        $producto = new Producto();
+        $producto->id_categoria = $request->id_categoria;
+        $producto->id_marca = $request->id_marca;
+        $producto->prd_nombre = $request->prd_nombre;
+        $producto->prd_stock = $request->prd_stock;
+        $producto->prd_precio = $request->prd_precio;
+        $producto->prd_fecha_vencimiento = $request->prd_fecha_vencimiento;
+        $producto->prd_descripcion = $request->prd_descripcion;
+        $producto->prd_imagen_path = $request->prd_imagen_path;
+        
+        $producto->save();
+
+        return response()->json([
+            'status' => 1,
+            'msg' => 'registro de producto exitoso',
+            'data' => $producto,
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        //
+        $producto = Producto::find($id);
+        return $producto;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
-        //
+        $producto = Producto::findOrFail($id);
+        $producto->id_categoria = $request->id_categoria;
+        $producto->id_marca = $request->id_marca;
+        $producto->prd_nombre = $request->prd_nombre;
+        $producto->prd_stock = $request->prd_stock;
+        $producto->prd_precio = $request->prd_precio;
+        $producto->prd_fecha_vencimiento = $request->prd_fecha_vencimiento;
+        $producto->prd_descripcion = $request->prd_descripcion;
+        $producto->prd_imagen_path = $request->prd_imagen_path;
+        
+        $producto->save();
+
+        return $producto;
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        //
+        $producto = Producto::destroy($id);
+        return $producto;
     }
 }
