@@ -29,14 +29,13 @@ class ProductoController extends Controller
         $producto->prd_precio = $request->prd_precio;
         $producto->prd_fecha_vencimiento = $request->prd_fecha_vencimiento;
         $producto->prd_descripcion = $request->prd_descripcion;
-        // $producto->prd_imagen_path = $request->prd_imagen_path;
         
         // subiendo imagen
-        $carpeta_foto = '/images/productos/';
+        $carpeta_foto = 'images/productos/';
         $foto = $request->prd_imagen;
         $extension_foto = $foto->getClientOriginalExtension();
-        $foto->move(base_path().$carpeta_foto, strtolower(   str_replace( ' ', '', $request->nombre . '.' . $extension_foto ) ) );
-        $ruta_foto = 'http://127.0.0.1:8080' . $carpeta_foto . strtolower( str_replace(' ', '', $request->nombre) . '.' . $extension_foto ) ;
+        $foto->move(base_path().'/public/'.$carpeta_foto, strtolower(   str_replace( ' ', '', $request->prd_nombre . '.' . $extension_foto ) ) );
+        $ruta_foto = 'http://127.0.0.1:8080/' . $carpeta_foto . strtolower( str_replace(' ', '', $request->prd_nombre) . '.' . $extension_foto ) ;
         $producto->prd_imagen_path = $ruta_foto;
 
         if ( $producto->save() ) {
@@ -66,8 +65,16 @@ class ProductoController extends Controller
         $producto->prd_precio = $request->prd_precio;
         $producto->prd_fecha_vencimiento = $request->prd_fecha_vencimiento;
         $producto->prd_descripcion = $request->prd_descripcion;
-        $producto->prd_imagen_path = $request->prd_imagen_path;
-        
+        if(isset($request->prd_imagen))
+        {
+            // actualizando imagen
+            $carpeta_foto = 'images/productos/';
+            $foto = $request->prd_imagen;
+            $extension_foto = $foto->getClientOriginalExtension();
+            $foto->move(base_path().'/public/'.$carpeta_foto, str_replace( ' ', '-', $request->prd_nombre . '.' . $extension_foto ) );
+            $ruta_foto = 'http://127.0.0.1:8080/' . $carpeta_foto . str_replace(' ', '-', $request->prd_nombre) . '.' . $extension_foto ;
+            $producto->prd_imagen_path = $ruta_foto;
+        }
         $producto->save();
 
         return $producto;
