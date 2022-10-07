@@ -3,13 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Producto;
+use App\Models\Categoria;
+use App\Models\Marca;
 
 class ProductoController extends Controller
 {
     public function index()
     {
-        $productos = Producto::all();
+        $productos = Producto::join('categorias', 'productos.id_categoria', 'categorias.id_categoria')
+                            ->join('marcas', 'productos.id_marca', 'marcas.id_marca')
+                            ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre')
+                            ->get();
         return $productos;
     }
     
@@ -23,15 +29,25 @@ class ProductoController extends Controller
         $producto->prd_precio = $request->prd_precio;
         $producto->prd_fecha_vencimiento = $request->prd_fecha_vencimiento;
         $producto->prd_descripcion = $request->prd_descripcion;
-        $producto->prd_imagen_path = $request->prd_imagen_path;
+        // $producto->prd_imagen_path = $request->prd_imagen_path;
         
-        $producto->save();
+        // subiendo imagen
+        $carpeta_foto = '/images/productos/';
+        $foto = $request->prd_imagen;
+        $extension_foto = $foto->getClientOriginalExtension();
+        $foto->move(base_path().$carpeta_foto, strtolower(   str_replace( ' ', '', $request->nombre . '.' . $extension_foto ) ) );
+        $ruta_foto = 'http://127.0.0.1:8080' . $carpeta_foto . strtolower( str_replace(' ', '', $request->nombre) . '.' . $extension_foto ) ;
+        $producto->prd_imagen_path = $ruta_foto;
 
-        return response()->json([
-            'status' => 1,
-            'msg' => 'registro de producto exitoso',
-            'data' => $producto,
-        ]);
+        if ( $producto->save() ) {
+            return response()->json([
+                'status' => 1,
+                'msg' => 'registro de producto exitoso',
+                'data' => $producto,
+            ]);
+        }else{
+            return response()->json(["message" => "No se pudo registrar"]);
+        }
     }
 
     public function show($id)
