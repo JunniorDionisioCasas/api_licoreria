@@ -16,6 +16,7 @@ Route::controller(ProductoController::class)->group(function () {
     Route::get('/producto/{id}', 'show');
     Route::post('/producto/{id}', 'update');
     Route::delete('/producto/{id}', 'destroy');
+    Route::get('/count_productos', 'info_filtro');
 });
 
 Route::controller(MarcaController::class)->group(function () {

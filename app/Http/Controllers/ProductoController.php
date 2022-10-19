@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Marca;
@@ -84,5 +85,30 @@ class ProductoController extends Controller
     {
         $producto = Producto::destroy($id);
         return $producto;
+    }
+
+    public function info_filtro()
+    {
+        $categorias = Categoria::select('ctg_nombre', 'id_categoria')
+                                ->orderBy('ctg_nombre')
+                                ->get();
+        foreach($categorias as $c){
+            $c->cantidad_productos = Producto::where('id_categoria', $c->id_categoria)
+                                            ->count();
+        }
+
+        $marcas = Marca::select('mrc_nombre', 'id_marca')
+                    ->orderBy('mrc_nombre')
+                    ->get();
+        foreach($marcas as $m){
+            $m->cantidad_productos = Producto::where('id_marca', $m->id_marca)
+                                            ->count();
+        }
+        
+        $info_filtro = new \stdClass;
+        $info_filtro->categorias = $categorias;
+        $info_filtro->marcas = $marcas;
+
+        return $info_filtro;
     }
 }
