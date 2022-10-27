@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\DescuentoController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -33,4 +35,20 @@ Route::controller(CategoriaController::class)->group(function () {
     Route::get('/categoria/{id}', 'show');
     Route::put('/categoria/{id}', 'update');
     Route::delete('/categoria/{id}', 'destroy');
+});
+
+Route::controller(PedidoController::class)->group(function () {
+    Route::get('/pedidos', 'index');
+    Route::post('/pedido', 'store');
+    Route::get('/pedido/{id}', 'show');
+    Route::put('/pedido/{id}', 'update');
+    Route::delete('/pedido/{id}', 'destroy');
+});
+
+Route::controller(DescuentoController::class)->group(function () {
+    Route::get('/descuentos', 'index');
+    Route::post('/descuento', 'store');
+    Route::get('/descuento/{id}', 'show');
+    Route::put('/descuento/{id}', 'update');
+    Route::delete('/descuento/{id}', 'destroy');
 });

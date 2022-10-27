@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Marca;
+use App\Models\Proveedor;
 
 class ProductoController extends Controller
 {
