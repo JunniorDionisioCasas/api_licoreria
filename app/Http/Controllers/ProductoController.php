@@ -112,4 +112,60 @@ class ProductoController extends Controller
 
         return $info_filtro;
     }
+
+    public function search_by_filtro ($searchParams)
+    {
+        /* // convertir a objeto json
+        $searchParams = '"'.$searchParams;
+        $searchParams = rtrim($searchParams, '&');
+        $searchParams = str_replace("=", '":', $searchParams);
+        $searchParams = str_replace("&", ',"', $searchParams);
+        $searchParams = '{' . $searchParams . '}'; */
+        $array_c = [];
+        $array_m = [];
+        $min_price = $max_price = 0;
+        $searchParams = explode("&", $searchParams, -1);
+        foreach($searchParams as $p){
+            $key = strstr($p, '=', true);
+            switch ($key) {
+                case 'c':
+                    $value = substr(strstr($p, '='), 1);
+                    array_push($array_c, $value);
+                    break;
+                case 'm':
+                    $value = substr(strstr($p, '='), 1);
+                    array_push($array_m, $value);
+                    break;
+                case 'min_price':
+                    $min_price = substr(strstr($p, '='), 1);
+                    break;
+                case 'max_price':
+                    $max_price = substr(strstr($p, '='), 1);
+                    break;
+            };
+        };
+
+        $productos = Producto::join('categorias', 'productos.id_categoria', 'categorias.id_categoria')
+                            ->join('marcas', 'productos.id_marca', 'marcas.id_marca')
+                            ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre')
+                            ->whereBetween('productos.prd_precio', [$min_price, $max_price]);
+        
+        foreach($array_c as $q){
+            $productos = $productos->where('productos.id_categoria', $q);
+        }
+
+        foreach($array_m as $q){
+            $productos = $productos->where('productos.id_marca', $q);
+        }
+        
+        $productos = $productos->get();
+
+        return $productos;
+
+        /* return response()->json([
+            "status" => 1,
+            "msg" => "se ejecuto search params api",
+            "data" => $productos,
+        ], 200); */
+    }
 }
