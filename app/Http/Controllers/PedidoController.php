@@ -11,6 +11,7 @@ use App\Models\Direccion;
 use App\Models\Descuento;
 use App\Models\Detalle_pedido;
 use App\Models\Pedido_descuento;
+use App\Models\Producto;
 
 class PedidoController extends Controller
 {
@@ -58,6 +59,10 @@ class PedidoController extends Controller
             $dtl_pdd->dtl_precio = $p["precio"];
             $dtl_pdd->dtl_cantidad = $p["cntd"];
             $dtl_pdd->save();
+
+            $updt_stck_prd = Producto::findOrFail($p["id"]);
+            $updt_stck_prd->prd_stock = ($updt_stck_prd->prd_stock)-$p["cntd"];
+            $updt_stck_prd->save();
 
             array_push($detalles_pedido, $dtl_pdd);
         }
