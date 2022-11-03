@@ -52,4 +52,5 @@ Route::controller(DescuentoController::class)->group(function () {
     Route::get('/descuento/{id}', 'show');
     Route::put('/descuento/{id}', 'update');
     Route::delete('/descuento/{id}', 'destroy');
+    Route::get('/descuento/buscar/{searchParams}', 'search_by_code');
 });
