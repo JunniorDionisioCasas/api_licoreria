@@ -9,6 +9,7 @@ use App\Models\Producto;
 use App\Models\Categoria;
 use App\Models\Marca;
 use App\Models\Proveedor;
+use App\Models\Detalle_pedido;
 
 class ProductoController extends Controller
 {
@@ -167,5 +168,60 @@ class ProductoController extends Controller
             "msg" => "se ejecuto search params api",
             "data" => $productos,
         ], 200); */
+    }
+
+    public function count_vistas($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $contador = $producto->prd_contador_vistas;
+        $contador++;
+        $producto->prd_contador_vistas = $contador;
+        $producto->save();
+
+        return true;
+    }
+
+    public function home_data()
+    {
+        $marcas = Marca::whereNotNull('mrc_image_path')
+                    ->get();
+
+        $prd_mas_vistos = Producto::where('prd_stock', '>=', 1)
+                                ->orderBy('prd_contador_vistas', 'desc')
+                                ->take(5)
+                                ->get();
+        
+        $id_prd_mas_vendidos = Detalle_pedido::selectRaw('id_producto, SUM(dtl_cantidad) as cant_vendida')
+                                            ->groupBy('id_producto')
+                                            ->orderBy('cant_vendida', 'desc')
+                                            ->take(4)
+                                            ->get();
+        
+        $data_prd_mas_vendidos = [];
+        foreach($id_prd_mas_vendidos as $p){
+            $data_prd = Producto::find($p->id_producto);
+            array_push($data_prd_mas_vendidos, $data_prd);
+        }
+        
+        $prd_nuevos = Producto::where('prd_stock', '>=', 1)
+                            ->latest()
+                            ->take(4)
+                            ->get();
+
+        $prd_en_oferta = Producto::join('descuentos', 'productos.id_descuento', '=', 'descuentos.id_descuento')
+                            ->where('productos.prd_stock', '>=', 1)
+                            ->whereNotNull('productos.id_descuento')
+                            ->orderBy('descuentos.dsc_cantidad', 'desc')
+                            ->take(4)
+                            ->get();
+
+        $home_data = new \stdClass;
+        $home_data->marcas = $marcas;
+        $home_data->prd_mas_vistos = $prd_mas_vistos;
+        $home_data->data_prd_mas_vendidos = $data_prd_mas_vendidos;
+        $home_data->prd_nuevos = $prd_nuevos;
+        $home_data->prd_en_oferta = $prd_en_oferta;
+
+        return $home_data;
     }
 }

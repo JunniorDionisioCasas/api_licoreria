@@ -20,6 +20,8 @@ Route::controller(ProductoController::class)->group(function () {
     Route::delete('/producto/{id}', 'destroy');
     Route::get('/count_productos', 'info_filtro');
     Route::get('/producto/buscar/{searchParams}', 'search_by_filtro');
+    Route::put('/producto_cont/{id}', 'count_vistas');
+    Route::get('/data_homepage', 'home_data');
 });
 
 Route::controller(MarcaController::class)->group(function () {
