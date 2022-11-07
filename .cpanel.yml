@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/diyagoon/public_html/licoreria_public/api_public/   #change diyagoon for your cpanel user
+    - export DEPLOYPATH=/home/diyagoon/public_html/licoreria_public/api_public/
     - /bin/rsync -a --exclude 'index.php' public/ $DEPLOYPATH
