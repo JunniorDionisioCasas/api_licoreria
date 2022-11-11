@@ -38,8 +38,11 @@ class ProductoController extends Controller
         $carpeta_foto = '/images/productos/';
         $foto = $request->prd_imagen;
         $extension_foto = $foto->getClientOriginalExtension();
-        $foto->move(base_path().'/public/'.$carpeta_foto, strtolower(   str_replace( ' ', '', $request->prd_nombre . '.' . $extension_foto ) ) );
-        $ruta_foto = $rootDir . $carpeta_foto . strtolower( str_replace(' ', '', $request->prd_nombre) . '.' . $extension_foto ) ;
+        $prd_nombre_modified = str_replace('ñ', 'n', $request->prd_nombre);
+        $prd_nombre_modified = str_replace(' ', '_', $prd_nombre_modified);
+        $prd_nombre_modified = strtolower($prd_nombre_modified . '.' . $extension_foto);
+        $foto->move(base_path().'/public/'.$carpeta_foto, $prd_nombre_modified );
+        $ruta_foto = $rootDir . $carpeta_foto . $prd_nombre_modified ;
         $producto->prd_imagen_path = $ruta_foto;
 
         if ( $producto->save() ) {
@@ -76,8 +79,11 @@ class ProductoController extends Controller
             $carpeta_foto = '/images/productos/';
             $foto = $request->prd_imagen;
             $extension_foto = $foto->getClientOriginalExtension();
-            $foto->move(base_path().'/public/'.$carpeta_foto, str_replace( ' ', '-', $request->prd_nombre . '.' . $extension_foto ) );
-            $ruta_foto = $rootDir . $carpeta_foto . str_replace(' ', '-', $request->prd_nombre) . '.' . $extension_foto ;
+            $prd_nombre_modified = str_replace('ñ', 'n', $request->prd_nombre);
+            $prd_nombre_modified = str_replace(' ', '_', $prd_nombre_modified);
+            $prd_nombre_modified = strtolower($prd_nombre_modified . '.' . $extension_foto);
+            $foto->move(base_path().'/public/'.$carpeta_foto, $prd_nombre_modified );
+            $ruta_foto = $rootDir . $carpeta_foto . $prd_nombre_modified ;
             $producto->prd_imagen_path = $ruta_foto;
         }
         $producto->save();
