@@ -42,7 +42,7 @@ class ProductoController extends Controller
         $prd_nombre_modified = str_replace(' ', '_', $prd_nombre_modified);
         $prd_nombre_modified = strtolower($prd_nombre_modified . '.' . $extension_foto);
         $foto->move(base_path().'/public/'.$carpeta_foto, $prd_nombre_modified );
-        $ruta_foto = 'https://api.licoreriasansebastian.com/' . $carpeta_foto . $prd_nombre_modified;
+        $ruta_foto = 'https://licoreriasansebastian.com/api_public/public' . $carpeta_foto . $prd_nombre_modified;
         // $ruta_foto = $rootDir . $carpeta_foto . $prd_nombre_modified ;
         $producto->prd_imagen_path = $ruta_foto;
 
@@ -84,7 +84,7 @@ class ProductoController extends Controller
             $prd_nombre_modified = str_replace(' ', '_', $prd_nombre_modified);
             $prd_nombre_modified = strtolower($prd_nombre_modified . '.' . $extension_foto);
             $foto->move(base_path().'/public/'.$carpeta_foto, $prd_nombre_modified );
-            $ruta_foto = 'https://api.licoreriasansebastian.com/' . $carpeta_foto . $prd_nombre_modified;
+            $ruta_foto = 'https://licoreriasansebastian.com/api_public/public' . $carpeta_foto . $prd_nombre_modified;
             $producto->prd_imagen_path = $ruta_foto;
         }
         $producto->save();
