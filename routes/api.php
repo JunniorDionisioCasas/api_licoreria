@@ -7,6 +7,7 @@ use App\Http\Controllers\MarcaController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\DescuentoController;
+use App\Http\Controllers\UserController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -55,4 +56,17 @@ Route::controller(DescuentoController::class)->group(function () {
     Route::put('/descuento/{id}', 'update');
     Route::delete('/descuento/{id}', 'destroy');
     Route::get('/descuento/buscar/{searchParams}', 'search_by_code');
+    Route::get('/descuento/check1stbuy/{id}', 'check_1st_buy');
+});
+
+Route::controller(UserController::class)->group(function () {
+    Route::post('/register', 'register');
+    Route::post('/login', 'login');
+});
+
+Route::group(['middleware' => ["auth:sanctum"]], function(){
+    Route::controller(UserController::class)->group(function () {
+        Route::get('/user-profile', 'userProfile');
+        Route::get('/logout', 'logout');
+    });
 });

@@ -212,4 +212,9 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    /* domain and subdomain url's */
+
+    'domainUrl' => [
+        'urlApiPublic' => env('URL_API_PUBLIC'),
+    ]
 ];

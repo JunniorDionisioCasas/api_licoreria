@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Descuento;
+use App\Models\Detalle_user;
 
 class DescuentoController extends Controller
 {
@@ -40,25 +41,40 @@ class DescuentoController extends Controller
     public function search_by_code($searchParams)
     {
         $descuento = Descuento::where("dsc_codigo", $searchParams)
-                            ->where("dsc_estado", 1)
+                            ->where("id_tipo_descuento", 3)
                             ->first();
 
-        if($descuento->dsc_estado == 1){
-            return response()->json([
-                "status" => 1,
-                "msg" => "se encontró un descuento para este codigo",
-                "data" => $descuento,
-            ], 200);
-        }elseif($descuento->dsc_estado == 0){
-            return response()->json([
-                "status" => 0,
-                "msg" => "el descuento está inactivo"
-            ], 400);
+        if($descuento){
+            if($descuento->dsc_estado == 1){
+                return response()->json([
+                    "status" => 1,
+                    "msg" => "se encontró un descuento para este codigo",
+                    "data" => $descuento,
+                ], 200);
+            }else{
+                return response()->json([
+                    "status" => 0,
+                    "msg" => "el descuento está inactivo"
+                ], 400);
+            }
         }else{
             return response()->json([
                 "status" => 0,
                 "msg" => "no se encontró descuentos con este código"
-            ], 400);
+            ], 404);
         };
+    }
+
+    public function check_1st_buy($id)
+    {
+        $dtl_user = Detalle_user::where('id_user', $id)
+                                ->where('dtl_usr_firstBuy', 1)
+                                ->first();
+        
+        if($dtl_user){
+            return false;
+        }else{
+            return true;
+        }
     }
 }
