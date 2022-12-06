@@ -17,7 +17,8 @@ class ProductoController extends Controller
     {
         $productos = Producto::join('categorias', 'productos.id_categoria', 'categorias.id_categoria')
                             ->join('marcas', 'productos.id_marca', 'marcas.id_marca')
-                            ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre')
+                            ->join('proveedores', 'productos.id_proveedor', 'proveedores.id_proveedor')
+                            ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre', 'proveedores.*')
                             ->get();
         return $productos;
     }

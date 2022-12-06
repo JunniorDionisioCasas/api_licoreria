@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\DescuentoController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProveedorController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -25,6 +26,14 @@ Route::controller(ProductoController::class)->group(function () {
     Route::get('/data_homepage', 'home_data');
 });
 
+Route::controller(CategoriaController::class)->group(function () {
+    Route::get('/categorias', 'index');
+    Route::post('/categoria', 'store');
+    Route::get('/categoria/{id}', 'show');
+    Route::put('/categoria/{id}', 'update');
+    Route::delete('/categoria/{id}', 'destroy');
+});
+
 Route::controller(MarcaController::class)->group(function () {
     Route::get('/marcas', 'index');
     Route::post('/marca', 'store');
@@ -33,12 +42,12 @@ Route::controller(MarcaController::class)->group(function () {
     Route::delete('/marca/{id}', 'destroy');
 });
 
-Route::controller(CategoriaController::class)->group(function () {
-    Route::get('/categorias', 'index');
-    Route::post('/categoria', 'store');
-    Route::get('/categoria/{id}', 'show');
-    Route::put('/categoria/{id}', 'update');
-    Route::delete('/categoria/{id}', 'destroy');
+Route::controller(ProveedorController::class)->group(function () {
+    Route::get('/proveedores', 'index');
+    Route::post('/proveedor', 'store');
+    Route::get('/proveedor/{id}', 'show');
+    Route::put('/proveedor/{id}', 'update');
+    Route::delete('/proveedor/{id}', 'destroy');
 });
 
 Route::controller(PedidoController::class)->group(function () {
