@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\TipoPedidoController;
 use App\Http\Controllers\TipoDescuentoController;
+use App\Http\Controllers\ReportesController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -82,6 +83,14 @@ Route::controller(DescuentoController::class)->group(function () {
 
 Route::controller(TipoDescuentoController::class)->group(function () {
     Route::get('/tipo_descuentos', 'index');
+});
+
+Route::controller(UserController::class)->group(function () {
+    Route::get('/clientes', 'index_clientes');
+});
+
+Route::controller(ReportesController::class)->group(function () {
+    Route::get('/reporte_ventas/{dateFrom}/{dateUntil}/{idProducto}/{idTipoPedido}/{idCliente}', 'reporte_ventas');
 });
 
 Route::controller(UserController::class)->group(function () {

@@ -36,6 +36,13 @@ class UserController extends Controller
         //
     }
 
+    public function index_clientes()
+    {
+        $clientes = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+                        ->get();
+        return $clientes;
+    }
+
     public function register(Request $request){
         $request->validate([
           'name' => 'required',
