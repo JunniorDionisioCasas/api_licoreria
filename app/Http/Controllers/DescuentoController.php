@@ -16,9 +16,28 @@ class DescuentoController extends Controller
         return $descuentos;
     }
 
+    public function crud_index()
+    {
+        $descuentos = Descuento::join('tipos_descuentos', 'descuentos.id_tipo_descuento', 'tipos_descuentos.id_tipo_descuento')
+                                ->select('descuentos.*', 'tipos_descuentos.tds_nombre')
+                                ->get();
+
+        return $descuentos;
+    }
+
     public function store(Request $request)
     {
-        //
+        $descuento = new Descuento();
+
+        $descuento->id_tipo_descuento = $request->id_tipo_descuento;
+        $descuento->dsc_nombre = $request->nombre;
+        $descuento->dsc_cantidad = $request->cantidad;
+        $descuento->dsc_codigo = $request->codigo;
+        $descuento->dsc_estado = $request->estado;
+
+        $descuento->save();
+
+        return $descuento;
     }
 
     public function show($id)
@@ -30,12 +49,24 @@ class DescuentoController extends Controller
 
     public function update(Request $request, $id)
     {
-        //
+        $descuento = Descuento::findOrFail($id);
+
+        $descuento->id_tipo_descuento = $request->id_tipo_descuento;
+        $descuento->dsc_nombre = $request->nombre;
+        $descuento->dsc_cantidad = $request->cantidad;
+        $descuento->dsc_codigo = $request->codigo;
+        $descuento->dsc_estado = $request->estado;
+
+        $descuento->save();
+
+        return $descuento;
     }
 
     public function destroy($id)
     {
-        //
+        $descuento = Descuento::destroy($id);
+
+        return $descuento;
     }
 
     public function search_by_code($searchParams)

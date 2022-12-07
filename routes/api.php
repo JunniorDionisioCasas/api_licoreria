@@ -9,6 +9,8 @@ use App\Http\Controllers\PedidoController;
 use App\Http\Controllers\DescuentoController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProveedorController;
+use App\Http\Controllers\TipoPedidoController;
+use App\Http\Controllers\TipoDescuentoController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -56,16 +58,30 @@ Route::controller(PedidoController::class)->group(function () {
     Route::get('/pedido/{id}', 'show');
     Route::put('/pedido/{id}', 'update');
     Route::delete('/pedido/{id}', 'destroy');
+    Route::put('/pedido_pagado/{id}', 'pedido_pagado');
+});
+
+Route::controller(TipoPedidoController::class)->group(function () {
+    Route::get('/tipo_pedidos', 'index');
+    Route::post('/tipo_pedido', 'store');
+    Route::get('/tipo_pedido/{id}', 'show');
+    Route::put('/tipo_pedido/{id}', 'update');
+    Route::delete('/tipo_pedido/{id}', 'destroy');
 });
 
 Route::controller(DescuentoController::class)->group(function () {
     Route::get('/descuentos', 'index');
+    Route::get('/all_descuentos', 'crud_index');
     Route::post('/descuento', 'store');
     Route::get('/descuento/{id}', 'show');
     Route::put('/descuento/{id}', 'update');
     Route::delete('/descuento/{id}', 'destroy');
     Route::get('/descuento/buscar/{searchParams}', 'search_by_code');
     Route::get('/descuento/check1stbuy/{id}', 'check_1st_buy');
+});
+
+Route::controller(TipoDescuentoController::class)->group(function () {
+    Route::get('/tipo_descuentos', 'index');
 });
 
 Route::controller(UserController::class)->group(function () {

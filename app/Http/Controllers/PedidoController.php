@@ -17,7 +17,15 @@ class PedidoController extends Controller
 {
     public function index()
     {
-        //
+        $pedidos = Pedido::join('comprobantes', 'pedidos.id_comprobante', 'comprobantes.id_comprobante')
+                        ->join('tipos_pedidos', 'pedidos.id_tipo_pedido', 'tipos_pedidos.id_tipo_pedido')
+                        ->join('users', 'pedidos.id_user', 'users.id')
+                        ->select('pedidos.id_pedido', 'pedidos.pdd_total', 'pedidos.pdd_fecha_entrega', 'pedidos.pdd_estado',
+                                'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero',
+                                'tipos_pedidos.tpe_nombre', 'users.name', 'users.usr_apellidos')
+                        ->get();
+
+        return $pedidos;
     }
 
     public function store(Request $request)
@@ -95,7 +103,16 @@ class PedidoController extends Controller
 
     public function show($id)
     {
-        //
+        $pedido = Pedido::join('comprobantes', 'pedidos.id_comprobante', 'comprobantes.id_comprobante')
+                        ->join('tipos_pedidos', 'pedidos.id_tipo_pedido', 'tipos_pedidos.id_tipo_pedido')
+                        ->join('detalles_pedidos', 'pedidos.id_pedido', 'detalles_pedidos.id_pedido')
+                        ->select('pedidos.id_pedido', 'pedidos.pdd_total', 'pedidos.created_at', 'pedidos.pdd_estado',
+                                'comprobantes.id_comprobante', 'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero', 
+                                'tipos_pedidos.id_tipo_pedido', 'tipos_pedidos.nombre',
+                                'detalles_pedidos.*')
+                        ->find($id);
+
+        return $pedido;
     }
 
     public function update(Request $request, $id)
@@ -106,5 +123,16 @@ class PedidoController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function pedido_pagado($id)
+    {
+        $pedido = Pedido::findOrFail($id);
+
+        $pedido->pdd_estado = 3; //pasa a 3(recibido) porque no se contempla el administrar proceso de delivery
+        
+        $pedido->save();
+
+        return $pedido;
     }
 }
