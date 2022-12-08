@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Cargo;
 use App\Models\Detalle_user;
+use App\Models\Direccion;
 
 class UserController extends Controller
 {
@@ -36,6 +37,63 @@ class UserController extends Controller
         //
     }
 
+    public function index_empleados()
+    {
+        $clientes = User::join('cargos', 'users.id_cargo', 'cargos.id_cargo')
+                        ->leftJoin('direcciones', 'users.id_direccion', 'direcciones.id_direccion')
+                        ->where("users.id_cargo", "!=", 1) //1=cliente, 2=admin
+                        ->select('users.*', 'cargos.crg_nombre', 'direcciones.drc_direccion')
+                        ->get();
+        return $clientes;
+    }
+    public function store_empleado(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|unique:users',
+            'password' => 'required|confirmed'
+        ]);
+    
+        $empleado = new User();
+        $empleado->id_cargo = 2;
+        $empleado->name = $request->name;
+        $empleado->email = $request->email;
+        $empleado->password = Hash::make($request->password);
+        $empleado->profile_photo_path = $request->profile_photo_path;
+        $empleado->usr_apellidos = $request->usr_apellidos;
+        $empleado->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
+        if ( $request->drc_direccion ) {
+            $direccion = new Direccion();
+            $direccion->id_direccion = $request->drc_direccion;
+            $empleado->id_direccion = $request->id_direccion;
+        }
+        
+        $empleado->save();
+
+        return $empleado;
+    }
+
+    public function show_empleado($id)
+    {
+        $cliente = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+                        ->where("id", $id)
+                        ->first();
+        return $cliente;
+    }
+
+    public function update_empleado(Request $request, $id)
+    {
+        //
+    }
+
+    public function destroy_empleado($id)
+    {
+        $cliente = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+                        ->where("id", $id)
+                        ->destroy();
+        return $cliente;
+    }
+    
     public function index_clientes()
     {
         $clientes = User::where("id_cargo", "=", 1) //1=cliente, 2=admin

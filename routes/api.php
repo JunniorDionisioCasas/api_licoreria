@@ -12,6 +12,7 @@ use App\Http\Controllers\ProveedorController;
 use App\Http\Controllers\TipoPedidoController;
 use App\Http\Controllers\TipoDescuentoController;
 use App\Http\Controllers\ReportesController;
+use App\Http\Controllers\CargosController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -85,8 +86,16 @@ Route::controller(TipoDescuentoController::class)->group(function () {
     Route::get('/tipo_descuentos', 'index');
 });
 
+Route::controller(CargosController::class)->group(function () {
+    Route::get('/cargos', 'index');
+    Route::post('/cargo', 'store');
+    Route::get('/cargo/{id}', 'show');
+    Route::put('/cargo/{id}', 'update');
+    Route::delete('/cargo/{id}', 'destroy');
+});
+
 Route::controller(UserController::class)->group(function () {
-    Route::get('/clientes', 'index_clientes');
+    Route::get('/empleados', 'index_empleados');
 });
 
 Route::controller(ReportesController::class)->group(function () {
