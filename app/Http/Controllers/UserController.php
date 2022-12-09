@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\Cargo;
@@ -48,24 +51,75 @@ class UserController extends Controller
     }
     public function store_empleado(Request $request)
     {
-        $request->validate([
+        // validation
+        $rules = [
             'name' => 'required',
+            'usr_apellidos' => 'required',
             'email' => 'required|unique:users',
-            'password' => 'required|confirmed'
-        ]);
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(8)
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols()
+                        ->uncompromised()
+            ]
+        ];
+        $messages = [
+            'required' => 'El campo :attribute es requerido.',
+            'unique' => 'El campo :attribute ya está en uso.',
+            'confirmed' => 'El campo :attribute no coincide con su campo de confirmación :other.'
+        ];
+        $atributtes = [
+            'email' => 'correo electrónico',
+            'name' => 'nombre',
+            'usr_apellidos' => 'apellidos',
+            'password' => 'contraseña',
+            'password_confirmation' => 'confirmación de contraseña',
+        ];
+        $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
+
+        if ($validator->fails()) {
+            /* return redirect('post/create')
+                        ->withErrors($validator)
+                        ->withInput(); */
+            return response()->json([
+                                        "status" => 0,
+                                        "msg" => "Los datos no son válidos.",
+                                    ], 404);
+        }
+
+        // Retrieve the validated input...
+        $validated = $validator->validated();
     
         $empleado = new User();
-        $empleado->id_cargo = 2;
+        $empleado->id_cargo = $request->id_cargo;
         $empleado->name = $request->name;
         $empleado->email = $request->email;
         $empleado->password = Hash::make($request->password);
-        $empleado->profile_photo_path = $request->profile_photo_path;
         $empleado->usr_apellidos = $request->usr_apellidos;
         $empleado->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
         if ( $request->drc_direccion ) {
             $direccion = new Direccion();
             $direccion->id_direccion = $request->drc_direccion;
             $empleado->id_direccion = $request->id_direccion;
+        }
+        // subiendo imagen
+        if ( $request->profile_photo_path ) {
+            $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
+            $folder_destination = '/images/empleados/';
+            $file = $request->profile_photo_path;
+
+            // file name corrections
+            $file_extension = $file->getClientOriginalExtension();
+            $file_name_modified = str_replace('ñ', 'n', $request->name . '_' . $request->usr_apellidos);
+            $file_name_modified = str_replace(' ', '_', $file_name_modified);
+            $file_name_modified = strtolower($file_name_modified . '.' . $file_extension);
+
+            $file->move($rootDir.$folder_destination, $file_name_modified );
+            $file_path = config('app.domainUrl.urlApiPublic') . $folder_destination . $file_name_modified;
+            $empleado->profile_photo_path = $file_path;
         }
         
         $empleado->save();
@@ -75,7 +129,7 @@ class UserController extends Controller
 
     public function show_empleado($id)
     {
-        $cliente = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+        $cliente = User::where("id_cargo", "!=", 1) //1=cliente, 2=admin
                         ->where("id", $id)
                         ->first();
         return $cliente;
@@ -83,7 +137,75 @@ class UserController extends Controller
 
     public function update_empleado(Request $request, $id)
     {
-        //
+        // validation
+        $rules = [
+            'name' => 'required',
+            'usr_apellidos' => 'required',
+            'email' => [
+                'required',
+                Rule::unique('users')->ignore($id),
+            ],
+            'password' => [
+                'sometimes',
+                'confirmed',
+                Password::min(8)
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols()
+                        ->uncompromised()
+            ]
+        ];
+        $validator = Validator::make( $request->all(), $rules );
+
+        if ($validator->fails()) {
+            return response()->json([
+                                        "status" => 0,
+                                        "msg" => "Los datos no son válidos.",
+                                        "validator_errors" => $validator->errors(),
+                                    ], 500); //response status = 500 so that frontend fetch get as error
+        }
+
+        // Retrieve the validated input...
+        $validated = $validator->validated();
+    
+        $empleado = User::where("id_cargo", "!=", 1) //1=cliente
+                        ->where("id", $id)
+                        ->first();
+        $empleado->id_cargo = $request->id_cargo;
+        $empleado->name = $request->name;
+        $empleado->email = $request->email;
+        $empleado->usr_apellidos = $request->usr_apellidos;
+        if ( $request->password ) {
+            $empleado->password = Hash::make($request->password);
+        }
+        if ( $request->usr_fecha_nacimiento ) {
+            $empleado->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
+        }
+        if ( $request->drc_direccion ) {
+            $direccion = new Direccion();
+            $direccion->id_direccion = $request->drc_direccion;
+            $empleado->id_direccion = $request->id_direccion;
+        }
+        // actualizando imagen
+        if ( $request->profile_photo_path ) {
+            $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
+            $folder_destination = '/images/empleados/';
+            $file = $request->profile_photo_path;
+
+            // file name corrections
+            $file_extension = $file->getClientOriginalExtension();
+            $file_name_modified = str_replace('ñ', 'n', $request->name . '_' . $request->usr_apellidos);
+            $file_name_modified = str_replace(' ', '_', $file_name_modified);
+            $file_name_modified = strtolower($file_name_modified . '.' . $file_extension);
+
+            $file->move($rootDir.$folder_destination, $file_name_modified );
+            $file_path = config('app.domainUrl.urlApiPublic') . $folder_destination . $file_name_modified;
+            $empleado->profile_photo_path = $file_path;
+        }
+        
+        $empleado->save();
+
+        return $empleado;
     }
 
     public function destroy_empleado($id)

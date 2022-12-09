@@ -96,6 +96,10 @@ Route::controller(CargosController::class)->group(function () {
 
 Route::controller(UserController::class)->group(function () {
     Route::get('/empleados', 'index_empleados');
+    Route::post('/empleado', 'store_empleado');
+    Route::get('/empleado/{id}', 'show_empleado');
+    Route::post('/empleado/{id}', 'update_empleado');
+    Route::delete('/empleado/{id}', 'destroy_empleado');
 });
 
 Route::controller(ReportesController::class)->group(function () {
