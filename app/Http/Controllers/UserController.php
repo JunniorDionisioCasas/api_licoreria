@@ -269,7 +269,8 @@ class UserController extends Controller
                     "user_id" => $user->id,
                     "access_token" => $token,
                     "token_type" => "Bearer",
-
+                    "user_name" => $user->name . ' ' . $user->usr_apellidos,
+                    "user_mail" => $user->email,
                 ]);
             }else{
                 return response()->json([
