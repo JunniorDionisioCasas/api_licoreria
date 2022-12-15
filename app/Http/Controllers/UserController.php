@@ -15,31 +15,7 @@ use App\Models\Direccion;
 
 class UserController extends Controller
 {
-    public function index()
-    {
-        //
-    }
-
-    public function store(Request $request)
-    {
-        //
-    }
-
-    public function show($id)
-    {
-        //
-    }
-
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    public function destroy($id)
-    {
-        //
-    }
-
+    /* Empleados */
     public function index_empleados()
     {
         $clientes = User::join('cargos', 'users.id_cargo', 'cargos.id_cargo')
@@ -210,19 +186,96 @@ class UserController extends Controller
 
     public function destroy_empleado($id)
     {
-        $cliente = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+        $empleado = User::where("id_cargo", "!=", 1) //1=cliente, 2=admin
                         ->where("id", $id)
-                        ->destroy();
-        return $cliente;
+                        ->delete();
+        return $empleado;
     }
     
+    /* Clientes */
     public function index_clientes()
     {
-        $clientes = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+        $clientes = User::leftJoin('direcciones', 'users.id_direccion', 'direcciones.id_direccion')
+                        ->where("id_cargo", "=", 1) //1=cliente, 2=admin
+                        ->select('users.*', 'direcciones.drc_direccion')
                         ->get();
         return $clientes;
     }
 
+    public function update_cliente(Request $request, $id)
+    {
+        // validation
+        $rules = [
+            'name' => 'required',
+            'usr_apellidos' => 'required',
+            'email' => [
+                'required',
+                Rule::unique('users')->ignore($id),
+            ]
+        ];
+        $validator = Validator::make( $request->all(), $rules );
+
+        if ($validator->fails()) {
+            return response()->json([
+                                        "status" => 0,
+                                        "msg" => "Los datos no son válidos.",
+                                        "validator_errors" => $validator->errors(),
+                                    ], 500); //response status = 500 so that frontend fetch get as error
+        }
+
+        // Retrieve the validated input...
+        $validated = $validator->validated();
+    
+        $cliente = User::where("id_cargo", "=", 1) //1=cliente
+                        ->where("id", $id)
+                        ->first();
+        
+        if (!$cliente) {
+            return false;
+        }
+        
+        $cliente->name = $request->name;
+        $cliente->email = $request->email;
+        $cliente->usr_apellidos = $request->usr_apellidos;
+        if ( $request->usr_fecha_nacimiento ) {
+            $cliente->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
+        }
+        if ( $request->drc_direccion ) {
+            $direccion = new Direccion();
+            $direccion->id_direccion = $request->drc_direccion;
+            $cliente->id_direccion = $request->id_direccion;
+        }
+        // actualizando imagen
+        if ( $request->profile_photo_path ) {
+            $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
+            $folder_destination = '/images/clientes/';
+            $file = $request->profile_photo_path;
+
+            // file name corrections
+            $file_extension = $file->getClientOriginalExtension();
+            $file_name_modified = str_replace('ñ', 'n', $request->name . '_' . $request->usr_apellidos);
+            $file_name_modified = str_replace(' ', '_', $file_name_modified);
+            $file_name_modified = strtolower($file_name_modified . '.' . $file_extension);
+
+            $file->move($rootDir.$folder_destination, $file_name_modified );
+            $file_path = config('app.domainUrl.urlApiPublic') . $folder_destination . $file_name_modified;
+            $cliente->profile_photo_path = $file_path;
+        }
+        
+        $cliente->save();
+
+        return $cliente;
+    }
+
+    public function destroy_cliente($id)
+    {
+        $cliente = User::where("id_cargo", "=", 1) //1=cliente, 2=admin
+                        ->where("id", $id)
+                        ->delete();
+        return $cliente;
+    }
+
+    /* register function only for clients */
     public function register(Request $request){
         $request->validate([
           'name' => 'required',
@@ -231,7 +284,7 @@ class UserController extends Controller
         ]);
     
         $user = new User();
-        $user->id_cargo = $request->id_cargo;
+        $user->id_cargo = 1; //id_cargo:1=client
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);

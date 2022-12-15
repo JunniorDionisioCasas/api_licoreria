@@ -115,5 +115,9 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     Route::controller(UserController::class)->group(function () {
         Route::get('/user-profile', 'userProfile');
         Route::get('/logout', 'logout');
+        
+        Route::get('/clientes', 'index_clientes');
+        Route::post('/cliente/{id}', 'update_cliente');
+        Route::delete('/cliente/{id}', 'destroy_cliente');
     });
 });
