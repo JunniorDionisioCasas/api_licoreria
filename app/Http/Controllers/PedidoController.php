@@ -57,6 +57,7 @@ class PedidoController extends Controller
         $pedido->pdd_total = $request->total;
         $pedido->pdd_fecha_entrega = $request->pdd_fecha_entrega;
         // $pedido->pdd_fecha_recepcion = $request->pdd_fecha_recepcion;
+        $pedido->pdd_estado = $request->pdd_estado;
         $pedido->save();
 
         $detalles_pedido = [];
