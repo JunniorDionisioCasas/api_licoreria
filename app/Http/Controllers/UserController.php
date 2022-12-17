@@ -15,13 +15,16 @@ use App\Models\Direccion;
 
 class UserController extends Controller
 {
-    /* Empleados */
+    /* apis Empleados */
+
     public function index_empleados()
     {
         $clientes = User::join('cargos', 'users.id_cargo', 'cargos.id_cargo')
                         ->leftJoin('direcciones', 'users.id_direccion', 'direcciones.id_direccion')
+                        ->leftJoin('distritos', 'direcciones.id_distrito', 'distritos.id_distrito')
+                        ->leftJoin('provincias', 'distritos.id_provincia', 'provincias.id_provincia')
                         ->where("users.id_cargo", "!=", 1) //1=cliente, 2=admin
-                        ->select('users.*', 'cargos.crg_nombre', 'direcciones.drc_direccion')
+                        ->select('users.*', 'cargos.crg_nombre', 'direcciones.drc_direccion', 'direcciones.id_distrito', 'distritos.id_provincia')
                         ->get();
         return $clientes;
     }
@@ -77,9 +80,19 @@ class UserController extends Controller
         $empleado->usr_apellidos = $request->usr_apellidos;
         $empleado->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
         if ( $request->drc_direccion ) {
-            $direccion = new Direccion();
-            $direccion->id_direccion = $request->drc_direccion;
-            $empleado->id_direccion = $request->id_direccion;
+            $check_existing_direction = Direccion::where('drc_direccion', $request->drc_direccion)
+                                                ->where('id_distrito', $request->id_distrito)
+                                                ->first();
+            if($check_existing_direction){
+                $empleado->id_direccion = $check_existing_direction->id_direccion;
+            } else {
+                $direccion = new Direccion();
+                $direccion->drc_direccion = $request->drc_direccion;
+                $direccion->id_distrito = $request->id_distrito;
+                $direccion->save();
+
+                $empleado->id_direccion = $direccion->id_direccion;
+            }
         }
         // subiendo imagen
         if ( $request->profile_photo_path ) {
@@ -158,9 +171,19 @@ class UserController extends Controller
             $empleado->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
         }
         if ( $request->drc_direccion ) {
-            $direccion = new Direccion();
-            $direccion->id_direccion = $request->drc_direccion;
-            $empleado->id_direccion = $request->id_direccion;
+            $check_existing_direction = Direccion::where('drc_direccion', $request->drc_direccion)
+                                                ->where('id_distrito', $request->id_distrito)
+                                                ->first();
+            if($check_existing_direction){
+                $empleado->id_direccion = $check_existing_direction->id_direccion;
+            } else {
+                $direccion = new Direccion();
+                $direccion->drc_direccion = $request->drc_direccion;
+                $direccion->id_distrito = $request->id_distrito;
+                $direccion->save();
+
+                $empleado->id_direccion = $direccion->id_direccion;
+            }
         }
         // actualizando imagen
         if ( $request->profile_photo_path ) {
@@ -196,8 +219,10 @@ class UserController extends Controller
     public function index_clientes()
     {
         $clientes = User::leftJoin('direcciones', 'users.id_direccion', 'direcciones.id_direccion')
+                        ->leftJoin('distritos', 'direcciones.id_distrito', 'distritos.id_distrito')
+                        ->leftJoin('provincias', 'distritos.id_provincia', 'provincias.id_provincia')
                         ->where("id_cargo", "=", 1) //1=cliente, 2=admin
-                        ->select('users.*', 'direcciones.drc_direccion')
+                        ->select('users.*', 'direcciones.drc_direccion', 'direcciones.id_distrito', 'distritos.id_provincia')
                         ->get();
         return $clientes;
     }
@@ -241,9 +266,19 @@ class UserController extends Controller
             $cliente->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
         }
         if ( $request->drc_direccion ) {
-            $direccion = new Direccion();
-            $direccion->id_direccion = $request->drc_direccion;
-            $cliente->id_direccion = $request->id_direccion;
+            $check_existing_direction = Direccion::where('drc_direccion', $request->drc_direccion)
+                                                ->where('id_distrito', $request->id_distrito)
+                                                ->first();
+            if($check_existing_direction){
+                $cliente->id_direccion = $check_existing_direction->id_direccion;
+            } else {
+                $direccion = new Direccion();
+                $direccion->drc_direccion = $request->drc_direccion;
+                $direccion->id_distrito = $request->id_distrito;
+                $direccion->save();
+
+                $cliente->id_direccion = $direccion->id_direccion;
+            }
         }
         // actualizando imagen
         if ( $request->profile_photo_path ) {
@@ -291,7 +326,15 @@ class UserController extends Controller
         $user->profile_photo_path = $request->profile_photo_path;
         $user->usr_apellidos = $request->usr_apellidos;
         $user->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
-        $user->id_direccion = $request->id_direccion;
+        if ( $request->drc_direccion ) {
+            $direccion = new Direccion();
+            $direccion->drc_direccion = $request->drc_direccion;
+            $direccion->id_distrito = $request->id_distrito;
+            $direccion->save();
+
+            $user->id_direccion = $direccion->id_direccion;
+        }
+        
         $user->save();
     
         return response()->json([

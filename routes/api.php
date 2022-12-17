@@ -13,6 +13,8 @@ use App\Http\Controllers\TipoPedidoController;
 use App\Http\Controllers\TipoDescuentoController;
 use App\Http\Controllers\ReportesController;
 use App\Http\Controllers\CargosController;
+use App\Http\Controllers\ProvinciaController;
+use App\Http\Controllers\DistritoController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -92,6 +94,14 @@ Route::controller(CargosController::class)->group(function () {
     Route::get('/cargo/{id}', 'show');
     Route::put('/cargo/{id}', 'update');
     Route::delete('/cargo/{id}', 'destroy');
+});
+
+Route::controller(ProvinciaController::class)->group(function () {
+    Route::get('/provincias', 'index');
+});
+
+Route::controller(DistritoController::class)->group(function () {
+    Route::get('/distritos_by_provincia/{idProvincia}', 'list_by_provincia');
 });
 
 Route::controller(UserController::class)->group(function () {
