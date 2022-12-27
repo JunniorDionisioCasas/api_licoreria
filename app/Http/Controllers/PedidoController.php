@@ -12,6 +12,7 @@ use App\Models\Descuento;
 use App\Models\Detalle_pedido;
 use App\Models\Pedido_descuento;
 use App\Models\Producto;
+use App\Models\Detalle_user;
 
 class PedidoController extends Controller
 {
@@ -86,6 +87,21 @@ class PedidoController extends Controller
                 $pdd_dsc->save();
 
                 array_push($pedido_descuentos, $pdd_dsc);
+
+                if($d["id"] == 2) { //2=primera compra del usuario
+                    $dtl_user = Detalle_user::where('id_user', $id)
+                                ->where('dtl_usr_firstBuy', 1)
+                                ->first();
+        
+                    if($dtl_user){
+                        $dtl_user->dtl_usr_firstBuy = 0;
+                    }else{
+                        $dtl_user = new Detalle_user;
+                        $dtl_user->id_user = $request->id_user;
+                        $dtl_user->dtl_usr_firstBuy = 0;
+                    }
+                    $dtl_user->save();
+                }
             }
         }
 
