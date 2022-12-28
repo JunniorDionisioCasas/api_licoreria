@@ -25,7 +25,8 @@ class User extends Authenticatable
         'profile_photo_path',
         'usr_apellidos',
         'usr_fecha_nacimiento',
-        'id_direccion'
+        'id_direccion',
+        'usr_num_documento'
     ];
 
     /**

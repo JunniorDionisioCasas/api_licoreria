@@ -31,4 +31,7 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'api_keys' => [
+        'apf_enterprise_key' => env('TOKEN_EMPRESA_APIS_PERU'),
+    ]
 ];

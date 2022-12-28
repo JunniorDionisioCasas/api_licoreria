@@ -3,16 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\File;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ComprobanteMailable;
 use App\Models\Pedido;
 use App\Models\Tipo_pedido;
 use App\Models\User;
 use App\Models\Comprobante;
 use App\Models\Direccion;
+use App\Models\Distrito;
+use App\Models\Provincia;
 use App\Models\Descuento;
 use App\Models\Detalle_pedido;
 use App\Models\Pedido_descuento;
 use App\Models\Producto;
 use App\Models\Detalle_user;
+use Carbon\Carbon;
 
 class PedidoController extends Controller
 {
@@ -31,6 +39,7 @@ class PedidoController extends Controller
 
     public function store(Request $request)
     {
+        $comp_correlativo = 1;
         $comp_serie = ( $request->tipo_comp === "Boleto" ) ? 'B001' : 'F001'; //cambia a B002 o F002 por sucursal
 
         $last_cmp = Comprobante::latest()
@@ -62,6 +71,7 @@ class PedidoController extends Controller
         $pedido->save();
 
         $detalles_pedido = [];
+        $prdsArrayForInvoicing = [];
         foreach($request->productos as $p){
             $dtl_pdd = new Detalle_pedido();
             $dtl_pdd->id_pedido = $pedido->id_pedido;
@@ -74,10 +84,18 @@ class PedidoController extends Controller
             $updt_stck_prd->prd_stock = ($updt_stck_prd->prd_stock)-$p["cntd"];
             $updt_stck_prd->save();
 
+            $prd = new \stdClass();
+            $prd->codigo = $updt_stck_prd->id_producto;
+            $prd->nombre = $updt_stck_prd->prd_nombre;
+            $prd->cantidad = $p["cntd"];
+            $prd->precio = $p["precio"];
+
+            array_push($prdsArrayForInvoicing, $prd);
             array_push($detalles_pedido, $dtl_pdd);
         }
 
         $pedido_descuentos = [];
+        $totalDescuento = 0;
         if($request->descuentos){
             foreach($request->descuentos as $d){
                 $pdd_dsc = new Pedido_descuento();
@@ -86,6 +104,7 @@ class PedidoController extends Controller
                 $pdd_dsc->pds_cantidad_desc = $d["cantidad"];
                 $pdd_dsc->save();
 
+                $totalDescuento += $d["cantidad"];
                 array_push($pedido_descuentos, $pdd_dsc);
 
                 if($d["id"] == 2) { //2=primera compra del usuario
@@ -104,6 +123,43 @@ class PedidoController extends Controller
                 }
             }
         }
+
+        $fechaFormatoBoleto = Carbon::now('America/Lima')->toAtomString();
+        $user = User::findOrFail($request->id_user);
+        $udDireccion = $request->direccion;
+        $udDepartamento = "JUNIN"; //default
+        $udProvincia = "HUANCAYO"; //default
+        $udDistrito = "SAN JERÓNIMO DE TUNÁN"; //default
+        $udUbigueo = "120130"; //default
+        if($user->id_direccion) {
+            $drc = Direccion::find($user->id_direccion);
+            if($drc){
+                $udDireccion = $drc->drc_direccion;
+                $drcDst = Distrito::find($drc->id_distrito);
+                $udDistrito = $drcDst->dst_nombre;
+                $udUbigueo = $drcDst->dst_ubigueo;
+                $drcPrv = Provincia::find($drcDst->id_provincia);
+                $udProvincia = $drcPrv->prv_nombre;
+            }
+        }
+        $dataCompra = (object) [
+            "total" => $request->total,
+            "cSerie" => $comp_serie,
+            "cCorrelativo" => $comp_correlativo,
+            "userMail" => $request->userMail,
+            "uNumDoc" => $user->usr_num_documento,
+            "uNombApll" => $user->name . ' ' . $user->usr_apellidos,
+            "uDireccion" => $udDireccion,
+            "uDepartamento" => $udDepartamento,
+            "uProvincia" => $udProvincia,
+            "uDistrito" => $udDistrito,
+            "uUbigueo" => $udUbigueo,
+            "totalDescuento" => $totalDescuento,
+            "productos" => $prdsArrayForInvoicing,
+            "fechaFormatoBoleto" => $fechaFormatoBoleto,
+        ];
+
+        $envioComprobante = $this->emisionComprobante($dataCompra);
 
         $data = new \stdClass();
         $data->pedido = $pedido;
@@ -151,5 +207,133 @@ class PedidoController extends Controller
         $pedido->save();
 
         return $pedido;
+    }
+
+    public function emisionComprobante($dataCompra){
+        //documentación apisPeru: https://facturacion.apisperu.com/doc#operation/invoice_pdf
+        $tokenEmpresa = "{{config('services.api_keys.apf_enterprise_key')}}";
+        $totalDescuento = $dataCompra->totalDescuento;
+        $mtoTotalAPagar = $dataCompra->total;
+        $mtoTotalDsct = $mtoTotalAPagar*$totalDescuento/100;
+        $mtoTotal = $mtoTotalAPagar + $mtoTotalDsct;
+        $mtoTotalSinIGV = (82*$mtoTotal)/100;
+        $mtoIgvTotal = (18*$mtoTotal)/100;
+
+        $formatterES = new \NumberFormatter("es", \NumberFormatter::SPELLOUT);
+        $montoTotalDeletreado = strtoupper($formatterES->format($mtoTotalAPagar));
+        $montoCentimosString = number_format($mtoTotalAPagar, 2);
+        $montoCentimos = substr($montoCentimosString, -2);
+
+        $url = 'https://facturacion.apisperu.com/api/v1/invoice/pdf';
+        $details = [];
+        foreach($dataCompra->productos as $prd) {
+            $monto = $prd->cantidad * $prd->precio;
+            $montoSinIGV = (82*$monto)/100;
+            $montoIGV = (18*$monto)/100;
+            $montoUnitSinIGV = (82*$prd->precio)/100;
+
+            $dtl = new \stdClass();
+            $dtl->codProducto = $prd->codigo;
+            $dtl->unidad = "NIU";
+            $dtl->descripcion = $prd->nombre;
+            $dtl->cantidad = $prd->cantidad;
+            $dtl->mtoValorUnitario = $montoUnitSinIGV;
+            $dtl->mtoValorVenta = $montoSinIGV;
+            $dtl->mtoBaseIgv = $montoSinIGV;
+            $dtl->porcentajeIgv = 18;
+            $dtl->igv = $montoIGV;
+            $dtl->tipAfeIgv = 10;
+            $dtl->totalImpuestos = $montoIGV;
+            $dtl->mtoPrecioUnitario = $prd->precio;
+            array_push($details, $dtl);
+        }
+        $response = Http::withToken($tokenEmpresa)->post($url, [
+            "ublVersion" => "2.1",
+            "tipoOperacion" => "0101",
+            "tipoDoc" => "03",
+            "serie" => $dataCompra->cSerie,
+            "correlativo" => $dataCompra->cCorrelativo,
+            "fechaEmision" => $dataCompra->fechaFormatoBoleto,
+            "formaPago" => [
+                "moneda" => "PEN",
+                "tipo" => "Contado"
+            ],
+            "tipoMoneda" => "PEN",
+            "client" => [
+                "tipoDoc" => "1",
+                "numDoc" => $dataCompra->uNumDoc,
+                "rznSocial" => $dataCompra->uNombApll,
+                "address" => [
+                "direccion" => $dataCompra->uDireccion,
+                "provincia" => $dataCompra->uProvincia,
+                "departamento" => $dataCompra->uDepartamento,
+                "distrito" => $dataCompra->uDistrito,
+                "ubigueo" => $dataCompra->uUbigueo
+                ]
+            ],
+            "company" => [ //default
+                "ruc" => 10409698871,
+                "razonSocial" => "Bastidas Flores Ruth Marisol",
+                "nombreComercial" => "Bazar Licorería San Sebastián",
+                "address" => [
+                "direccion" => "Jr. lima N 136 San Jerónimo de Tunan – Huancayo",
+                "provincia" => "HUANCAYO",
+                "departamento" => "JUNIN",
+                "distrito" => "SAN JERÓNIMO DE TUNÁN",
+                "ubigueo" => "120130"
+                ]
+            ],
+            "mtoOperGravadas" => $mtoTotalSinIGV,
+            "mtoIGV" => 18,
+            "valorVenta" => $mtoTotalSinIGV,
+            "totalImpuestos" => $mtoIgvTotal,
+            "subTotal" => $dataCompra->total,
+            "mtoImpVenta" => $dataCompra->total,
+            "details" => $details,
+            "legends" => [
+                [
+                "code" => "1000",
+                "value" => "SON ".$montoTotalDeletreado." CON ".$montoCentimos."/100 SOLES"
+                ]
+            ],
+            "descuentos" => [
+                [
+                    "codTipo" => "00",
+                    "factor" => "Monto total descuento",
+                    "monto" => $mtoTotalDsct,
+                    "montoBase" => $mtoTotalDsct
+                ]
+            ]
+        ]);
+
+        $pdf = $response->body();
+        // set HTTP response headers
+        /* header("Content-Type: application/pdf");
+        header("Cache-Control: max-age=0");
+        header("Accept-Ranges: none");
+        header("Content-Disposition: attachment; filename=\"example_com.pdf\"");
+
+        //send the generated PDF
+        echo $pdf;
+
+        Storage::move('old/file.jpg', 'new/file.jpg');
+        storage_path().'/app/public'     public_path()
+        if(Storage::putFileAs(public_path(), new File($pdf), str_replace( ' ', '', $cmp_nombre_archivo)){
+            $pdf->move(public_path(), 'testComprobante.pdf');
+            $estadoEnvio = true;
+        }else{
+            $estadoEnvio = false;
+        } */
+
+        $cmp_nombre_archivo = $dataCompra->cSerie.'-'.$dataCompra->cCorrelativo.'.pdf';
+        $cmp_nombre_archivo = str_replace( ' ', '', $cmp_nombre_archivo);
+        // $pathNewFile = Storage::putFileAs('public', $pdf, $cmp_nombre_archivo);
+        Storage::disk('public')->put($cmp_nombre_archivo, $pdf);
+
+        $pathNewFile = storage_path().'/app/public/'.$cmp_nombre_archivo;
+
+        Mail::to($dataCompra->userMail)->send(new ComprobanteMailable($pathNewFile));
+
+        return $pathNewFile;
     }
 }

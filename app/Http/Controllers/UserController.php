@@ -35,6 +35,7 @@ class UserController extends Controller
             'name' => 'required',
             'usr_apellidos' => 'required',
             'email' => 'required|unique:users',
+            'usr_num_documento' => 'required',
             'password' => [
                 'required',
                 'confirmed',
@@ -130,6 +131,7 @@ class UserController extends Controller
         $rules = [
             'name' => 'required',
             'usr_apellidos' => 'required',
+            'usr_num_documento' => 'required',
             'email' => [
                 'required',
                 Rule::unique('users')->ignore($id),
@@ -233,6 +235,7 @@ class UserController extends Controller
         $rules = [
             'name' => 'required',
             'usr_apellidos' => 'required',
+            'usr_num_documento' => 'required',
             'email' => [
                 'required',
                 Rule::unique('users')->ignore($id),
@@ -315,6 +318,7 @@ class UserController extends Controller
         $request->validate([
           'name' => 'required',
           'email' => 'required|unique:users',
+          'usr_num_documento' => 'required',
           'password' => 'required|confirmed'
         ]);
     
