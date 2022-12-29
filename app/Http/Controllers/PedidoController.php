@@ -48,6 +48,7 @@ class PedidoController extends Controller
 
         if ( $last_cmp ) {
             $numeracion_comp = $last_cmp->cmp_numero + 1;
+            $comp_correlativo = $numeracion_comp;
         } else {
             $numeracion_comp = 1;
         }
@@ -109,7 +110,7 @@ class PedidoController extends Controller
                 array_push($pedido_descuentos, $pdd_dsc);
 
                 if($d["id"] == 2) { //2=primera compra del usuario
-                    $dtl_user = Detalle_user::where('id_user', $id)
+                    $dtl_user = Detalle_user::where('id_user', $request->id_user)
                                 ->where('dtl_usr_firstBuy', 1)
                                 ->first();
         
