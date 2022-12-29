@@ -7,18 +7,20 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class ComprobanteMailable extends Mailable
+class InvoiceMailable extends Mailable
 {
     use Queueable, SerializesModels;
+
+    public $comprobanteUrl;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($comprobanteUrl)
     {
-        //
+        $this->comprobanteUrl = $comprobanteUrl;
     }
 
     /**
@@ -28,6 +30,6 @@ class ComprobanteMailable extends Mailable
      */
     public function build()
     {
-        return $this->view('view.name');
+        return $this->markdown('emails.invoice')->attach($this->comprobanteUrl);
     }
 }

@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\ComprobanteMailable;
+use App\Mail\InvoiceMailable;
 use App\Models\Pedido;
 use App\Models\Tipo_pedido;
 use App\Models\User;
@@ -166,6 +167,7 @@ class PedidoController extends Controller
         $data->comprobante = $comprobante;
         $data->detalles = $detalles_pedido;
         $data->descuentos = $pedido_descuentos;
+        $data->envioComprobante = $envioComprobante;
 
         return response()->json([
             "status" => 1,
@@ -211,16 +213,19 @@ class PedidoController extends Controller
 
     public function emisionComprobante($dataCompra){
         //documentación apisPeru: https://facturacion.apisperu.com/doc#operation/invoice_pdf
-        $tokenEmpresa = "{{config('services.api_keys.apf_enterprise_key')}}";
+        $tokenEmpresa = config('services.api_keys.apf_enterprise_key');
         $totalDescuento = $dataCompra->totalDescuento;
         $mtoTotalAPagar = $dataCompra->total;
         $mtoTotalDsct = $mtoTotalAPagar*$totalDescuento/100;
+        $mtoTotalDsct = round($mtoTotalDsct, 1);
+        $mtoTotalDsct = number_format((float)$mtoTotalDsct, 2, '.', '');
         $mtoTotal = $mtoTotalAPagar + $mtoTotalDsct;
-        $mtoTotalSinIGV = (82*$mtoTotal)/100;
-        $mtoIgvTotal = (18*$mtoTotal)/100;
+        $mtoTotalSinIGV = 0.82*$mtoTotal;
+        $mtoIgvTotal = 0.18*$mtoTotal;
 
+        $mtoTotalADeletrear = intval($mtoTotalAPagar);
         $formatterES = new \NumberFormatter("es", \NumberFormatter::SPELLOUT);
-        $montoTotalDeletreado = strtoupper($formatterES->format($mtoTotalAPagar));
+        $montoTotalDeletreado = strtoupper($formatterES->format(88));
         $montoCentimosString = number_format($mtoTotalAPagar, 2);
         $montoCentimos = substr($montoCentimosString, -2);
 
@@ -228,9 +233,9 @@ class PedidoController extends Controller
         $details = [];
         foreach($dataCompra->productos as $prd) {
             $monto = $prd->cantidad * $prd->precio;
-            $montoSinIGV = (82*$monto)/100;
-            $montoIGV = (18*$monto)/100;
-            $montoUnitSinIGV = (82*$prd->precio)/100;
+            $montoSinIGV = 0.82*$monto;
+            $montoIGV = 0.18*$monto;
+            $montoUnitSinIGV = 0.82*$prd->precio;
 
             $dtl = new \stdClass();
             $dtl->codProducto = $prd->codigo;
@@ -284,7 +289,7 @@ class PedidoController extends Controller
                 ]
             ],
             "mtoOperGravadas" => $mtoTotalSinIGV,
-            "mtoIGV" => 18,
+            "mtoIGV" => $mtoIgvTotal,
             "valorVenta" => $mtoTotalSinIGV,
             "totalImpuestos" => $mtoIgvTotal,
             "subTotal" => $dataCompra->total,
@@ -307,32 +312,17 @@ class PedidoController extends Controller
         ]);
 
         $pdf = $response->body();
-        // set HTTP response headers
-        /* header("Content-Type: application/pdf");
-        header("Cache-Control: max-age=0");
-        header("Accept-Ranges: none");
-        header("Content-Disposition: attachment; filename=\"example_com.pdf\"");
 
-        //send the generated PDF
-        echo $pdf;
-
-        Storage::move('old/file.jpg', 'new/file.jpg');
-        storage_path().'/app/public'     public_path()
-        if(Storage::putFileAs(public_path(), new File($pdf), str_replace( ' ', '', $cmp_nombre_archivo)){
-            $pdf->move(public_path(), 'testComprobante.pdf');
-            $estadoEnvio = true;
-        }else{
-            $estadoEnvio = false;
-        } */
-
-        $cmp_nombre_archivo = $dataCompra->cSerie.'-'.$dataCompra->cCorrelativo.'.pdf';
-        $cmp_nombre_archivo = str_replace( ' ', '', $cmp_nombre_archivo);
-        // $pathNewFile = Storage::putFileAs('public', $pdf, $cmp_nombre_archivo);
+        $fecha_emision = Carbon::now('-05:00');
+        $cmp_nombre_archivo = $dataCompra->cSerie.'_'.$dataCompra->cCorrelativo.'_'.$fecha_emision.'.pdf';
+        $cmp_nombre_archivo = str_replace( ':', '-', $cmp_nombre_archivo);
+        $cmp_nombre_archivo = str_replace( ' ', '-', $cmp_nombre_archivo);
+        
         Storage::disk('public')->put($cmp_nombre_archivo, $pdf);
 
         $pathNewFile = storage_path().'/app/public/'.$cmp_nombre_archivo;
 
-        Mail::to($dataCompra->userMail)->send(new ComprobanteMailable($pathNewFile));
+        Mail::to($dataCompra->userMail)->send(new InvoiceMailable($pathNewFile));
 
         return $pathNewFile;
     }
