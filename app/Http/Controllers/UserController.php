@@ -356,7 +356,9 @@ class UserController extends Controller
             "password" => "required"
         ]);
 
-        $user = User::where("email", "=", $request->email)->first();
+        $user = User::leftJoin('direcciones', 'users.id_direccion', 'direcciones.id_direccion')
+                    ->where("users.email", "=", $request->email)
+                    ->first();
 
         if( isset($user->id) ){
             if(Hash::check($request->password, $user->password)){
@@ -371,6 +373,7 @@ class UserController extends Controller
                     "token_type" => "Bearer",
                     "user_name" => $user->name . ' ' . $user->usr_apellidos,
                     "user_mail" => $user->email,
+                    "user_mail" => $user->drc_direccion
                 ]);
             }else{
                 return response()->json([
