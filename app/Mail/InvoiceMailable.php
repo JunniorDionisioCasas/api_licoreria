@@ -30,6 +30,8 @@ class InvoiceMailable extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.invoice')->attach($this->comprobanteUrl);
+        return $this->subject('Comprobante de compra')
+                    ->markdown('emails.invoice')
+                    ->attach($this->comprobanteUrl);
     }
 }
