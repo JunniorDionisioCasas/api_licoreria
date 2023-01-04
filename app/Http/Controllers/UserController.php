@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Cargo;
 use App\Models\Detalle_user;
 use App\Models\Direccion;
+use Illuminate\Support\Facades\File;
 
 class UserController extends Controller
 {
@@ -35,7 +36,7 @@ class UserController extends Controller
             'name' => 'required',
             'usr_apellidos' => 'required',
             'email' => 'required|unique:users',
-            'usr_num_documento' => 'required',
+            'usr_num_documento' => 'required|unique:users',
             'password' => [
                 'required',
                 'confirmed',
@@ -79,6 +80,7 @@ class UserController extends Controller
         $empleado->password = Hash::make($request->password);
         $empleado->usr_apellidos = $request->usr_apellidos;
         $empleado->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
+        $empleado->usr_num_documento = $request->usr_num_documento;
         if ( $request->drc_direccion ) {
             $check_existing_direction = Direccion::where('drc_direccion', $request->drc_direccion)
                                                 ->where('id_distrito', $request->id_distrito)
@@ -130,7 +132,10 @@ class UserController extends Controller
         $rules = [
             'name' => 'required',
             'usr_apellidos' => 'required',
-            'usr_num_documento' => 'required',
+            'usr_num_documento' => [
+                'required',
+                Rule::unique('users')->ignore($id),
+            ],
             'email' => [
                 'required',
                 Rule::unique('users')->ignore($id),
@@ -165,6 +170,7 @@ class UserController extends Controller
         $empleado->name = $request->name;
         $empleado->email = $request->email;
         $empleado->usr_apellidos = $request->usr_apellidos;
+        $empleado->usr_num_documento = $request->usr_num_documento;
         if ( $request->password ) {
             $empleado->password = Hash::make($request->password);
         }
@@ -197,6 +203,20 @@ class UserController extends Controller
             $file_name_modified = str_replace('ñ', 'n', $request->name . '_' . $request->usr_apellidos);
             $file_name_modified = str_replace(' ', '_', $file_name_modified);
             $file_name_modified = strtolower($file_name_modified . '.' . $file_extension);
+
+            //delete previous file
+            try{
+                $previousFilePath = $empleado->profile_photo_path;
+                //if file is stored in api subdomain
+                $previousFilePath = str_replace(env("URL_API_PUBLIC").'/', '', $previousFilePath);
+                //if file is stored in main domain
+                $previousFilePath = str_replace('https://licoreriasansebastian.com/storage', '/licoreriasansebastian.com/storage/app/public', $previousFilePath);
+                //if file is stored in admin subdomain
+                $previousFilePath = str_replace('https://admin.licoreriasansebastian.com/storage', '/admin.licoreriasansebastian.com/storage/app/public', $previousFilePath);
+                File::delete($previousFilePath);
+            }catch(Throwable $e){
+                report($e);
+            }
 
             $file->move($rootDir.$folder_destination, $file_name_modified );
             $file_path = config('app.domainUrl.urlApiPublic') . $folder_destination . $file_name_modified;
@@ -234,7 +254,10 @@ class UserController extends Controller
         $rules = [
             'name' => 'required',
             'usr_apellidos' => 'required',
-            'usr_num_documento' => 'required',
+            'usr_num_documento' => [
+                'required',
+                Rule::unique('users')->ignore($id),
+            ],
             'email' => [
                 'required',
                 Rule::unique('users')->ignore($id),
@@ -264,6 +287,7 @@ class UserController extends Controller
         $cliente->name = $request->name;
         $cliente->email = $request->email;
         $cliente->usr_apellidos = $request->usr_apellidos;
+        $cliente->usr_num_documento = $request->usr_num_documento;
         if ( $request->usr_fecha_nacimiento ) {
             $cliente->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
         }
@@ -294,8 +318,30 @@ class UserController extends Controller
             $file_name_modified = str_replace(' ', '_', $file_name_modified);
             $file_name_modified = strtolower($file_name_modified . '.' . $file_extension);
 
+            //delete previous file
+            try{
+                $previousFilePath = $cliente->profile_photo_path;
+                // $previousFilePath = is_dir($previousFilePath) ? rtrim($previousFilePath, '\/') . '/' : $previousFilePath;
+                // $previousFilePath = str_replace('\\', '/', $previousFilePath);
+                // $previousFilePath = explode('/', $previousFilePath);
+                // $previousFilePath = $previousFilePath[2].'/'.$previousFilePath[3];
+                // pathinfo($cliente->profile_photo_path)['dirname']
+                //if file is stored in api subdomain
+                $previousFilePath = str_replace(env("URL_API_PUBLIC").'/', '', $previousFilePath);
+                //if file is stored in main domain
+                $previousFilePath = str_replace('https://licoreriasansebastian.com/storage', '/licoreriasansebastian.com/storage/app/public', $previousFilePath);
+                //if file is stored in admin subdomain
+                $previousFilePath = str_replace('https://admin.licoreriasansebastian.com/storage', '/admin.licoreriasansebastian.com/storage/app/public', $previousFilePath);
+                
+                // $previousFilePath = app_path().'/public'.$previousFilePath;
+                File::delete($previousFilePath);
+            }catch(Throwable $e){
+                report($e);
+            }
+
             $file->move($rootDir.$folder_destination, $file_name_modified );
             $file_path = config('app.domainUrl.urlApiPublic') . $folder_destination . $file_name_modified;
+            //assign new photo path to user
             $cliente->profile_photo_path = $file_path;
         }
         
@@ -317,7 +363,7 @@ class UserController extends Controller
         $request->validate([
           'name' => 'required',
           'email' => 'required|unique:users',
-          'usr_num_documento' => 'required',
+          'usr_num_documento' => 'required|unique:users',
           'password' => 'required|confirmed'
         ]);
     
@@ -329,6 +375,7 @@ class UserController extends Controller
         $user->profile_photo_path = $request->profile_photo_path;
         $user->usr_apellidos = $request->usr_apellidos;
         $user->usr_fecha_nacimiento = $request->usr_fecha_nacimiento;
+        $user->usr_num_documento = $request->usr_num_documento;
         if ( $request->drc_direccion ) {
             $direccion = new Direccion();
             $direccion->drc_direccion = $request->drc_direccion;
