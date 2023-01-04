@@ -43,7 +43,6 @@ class UserController extends Controller
                         ->mixedCase()
                         ->numbers()
                         ->symbols()
-                        ->uncompromised()
             ]
         ];
         $messages = [
@@ -143,9 +142,9 @@ class UserController extends Controller
                         ->mixedCase()
                         ->numbers()
                         ->symbols()
-                        ->uncompromised()
             ]
         ];
+        // ->uncompromised()
         $validator = Validator::make( $request->all(), $rules );
 
         if ($validator->fails()) {
