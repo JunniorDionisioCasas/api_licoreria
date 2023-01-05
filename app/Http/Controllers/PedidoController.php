@@ -31,7 +31,7 @@ class PedidoController extends Controller
                         ->join('tipos_pedidos', 'pedidos.id_tipo_pedido', 'tipos_pedidos.id_tipo_pedido')
                         ->join('users', 'pedidos.id_user', 'users.id')
                         ->select('pedidos.id_pedido', 'pedidos.pdd_total', 'pedidos.pdd_fecha_entrega', 'pedidos.pdd_estado',
-                                'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero',
+                                'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero', 'comprobantes.cmp_pdf_path',
                                 'tipos_pedidos.tpe_nombre', 'users.name', 'users.usr_apellidos')
                         ->get();
 
@@ -162,6 +162,10 @@ class PedidoController extends Controller
         ];
 
         $envioComprobante = $this->emisionComprobante($dataCompra);
+
+        $comprobante->cmp_pdf_path = $envioComprobante;
+        $comprobante->save();
+        // $comprobante->forceFill(['cmp_pdf_path' => $envioComprobante])->save();
 
         $data = new \stdClass();
         $data->pedido = $pedido;
@@ -319,12 +323,12 @@ class PedidoController extends Controller
         $cmp_nombre_archivo = str_replace( ':', '-', $cmp_nombre_archivo);
         $cmp_nombre_archivo = str_replace( ' ', '-', $cmp_nombre_archivo);
         
-        Storage::disk('public')->put($cmp_nombre_archivo, $pdf);
+        Storage::disk('invoices')->put($cmp_nombre_archivo, $pdf);
 
-        $pathNewFile = storage_path().'/app/public/'.$cmp_nombre_archivo;
+        $pathNewFile = storage_path().'/app/public/invoices/'.$cmp_nombre_archivo;
 
         Mail::to($dataCompra->userMail)->send(new InvoiceMailable($pathNewFile));
 
-        return $pathNewFile;
+        return env("APP_URL").'storage/invoices/'.$cmp_nombre_archivo;
     }
 }
