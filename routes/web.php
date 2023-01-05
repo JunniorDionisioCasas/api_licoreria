@@ -21,3 +21,9 @@ Route::get('/', function () {
 Route::get('/symlink', function () {
     Artisan::call('storage:link');
 });
+
+Route::get('/link', function () {        
+    $target = '/api.licoreriasansebastian.com/storage/app/public/invoices';
+    $shortcut = '/public_html/api_public/public/storage/invoices';
+    symlink($target, $shortcut);
+});
