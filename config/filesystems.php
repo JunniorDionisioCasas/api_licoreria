@@ -47,8 +47,8 @@ return [
         //added disk
         'invoices' => [
             'driver' => 'local',
-            'root' => storage_path('app/public/invoices'),
-            'url' => env('APP_URL').'/storage',
+            'root' => public_path().'/invoices',
+            'url' => env('APP_URL').'/invoices',
             'visibility' => 'public',
             'throw' => false,
         ],
