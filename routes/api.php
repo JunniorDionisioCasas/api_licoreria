@@ -133,12 +133,14 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
     });
 });
 
-Route::get('/symlink', function () {
-    Artisan::call('storage:link');
-});
-
 Route::get('/link', function () {        
     $target = '/home/licoreri/api.licoreriasansebastian.com/storage/app/public/invoices';
     $shortcut = '/home/licoreri/public_html/api_public/public/invoices';
+    symlink($target, $shortcut);
+});
+
+Route::get('/linksecond', function () {        
+    $target = '/home/licoreri/api.licoreriasansebastian.com/storage/app/public/invoices/';
+    $shortcut = '/home/licoreri/public_html/api_public/public/storage/invoices/';
     symlink($target, $shortcut);
 });

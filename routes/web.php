@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,14 +15,4 @@ use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-Route::get('/symlink', function () {
-    Artisan::call('storage:link');
-});
-
-Route::get('/link', function () {        
-    $target = '/api.licoreriasansebastian.com/storage/app/public/invoices';
-    $shortcut = '/public_html/api_public/public/storage/invoices';
-    symlink($target, $shortcut);
 });
