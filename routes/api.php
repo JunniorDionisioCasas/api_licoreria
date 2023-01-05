@@ -131,3 +131,7 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
         Route::delete('/cliente/{id}', 'destroy_cliente');
     });
 });
+
+Route::get('/symlink', function () {
+    Artisan::call('storage:link');
+});
