@@ -141,6 +141,6 @@ Route::get('/link', function () {
 
 Route::get('/linksecond', function () {        
     $target = '/home/licoreri/api.licoreriasansebastian.com/storage/app/public/invoices/';
-    $shortcut = '/home/licoreri/public_html/api_public/public/storage/invoices/';
+    $shortcut = '/home/licoreri/public_html/api_public/public/invoices/';
     symlink($target, $shortcut);
 });
