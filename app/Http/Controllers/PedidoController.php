@@ -230,7 +230,7 @@ class PedidoController extends Controller
 
         $mtoTotalADeletrear = intval($mtoTotalAPagar);
         $formatterES = new \NumberFormatter("es", \NumberFormatter::SPELLOUT);
-        $montoTotalDeletreado = strtoupper($formatterES->format(88));
+        $montoTotalDeletreado = strtoupper($formatterES->format($mtoTotalADeletrear));
         $montoCentimosString = number_format($mtoTotalAPagar, 2);
         $montoCentimos = substr($montoCentimosString, -2);
 
