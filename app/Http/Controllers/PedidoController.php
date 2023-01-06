@@ -38,6 +38,21 @@ class PedidoController extends Controller
         return $pedidos;
     }
 
+    public function index_by_user($id)
+    {
+        $pedidos_by_user = Pedido::join('comprobantes', 'pedidos.id_comprobante', 'comprobantes.id_comprobante')
+                        ->join('tipos_pedidos', 'pedidos.id_tipo_pedido', 'tipos_pedidos.id_tipo_pedido')
+                        ->join('users', 'pedidos.id_user', 'users.id')
+                        ->select('pedidos.id_pedido', 'pedidos.pdd_total', 'pedidos.pdd_fecha_entrega', 'pedidos.pdd_estado',
+                                'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero', 'comprobantes.cmp_pdf_path',
+                                'tipos_pedidos.tpe_nombre', 'users.name', 'users.usr_apellidos')
+                        ->where('users.id', $id)
+                        ->orderBy('pedidos.pdd_fecha_entrega', 'desc')
+                        ->get();
+
+        return $pedidos_by_user;
+    }
+
     public function store(Request $request)
     {
         $comp_correlativo = 1;
@@ -200,6 +215,17 @@ class PedidoController extends Controller
         //
     }
 
+    public function received($id)
+    {
+        $pedido_recibido = Pedido::findOrFail($id);
+
+        $pedido_recibido->pdd_estado = 3; //pasa a 3(recibido)
+        
+        $pedido_recibido->save();
+
+        return $pedido_recibido;
+    }
+
     public function destroy($id)
     {
         //
@@ -209,7 +235,7 @@ class PedidoController extends Controller
     {
         $pedido = Pedido::findOrFail($id);
 
-        $pedido->pdd_estado = 3; //pasa a 3(recibido) porque no se contempla el administrar proceso de delivery
+        $pedido->pdd_estado = 2; //pasa a 2(enviado) porque no se contempla el administrar proceso de delivery
         
         $pedido->save();
 

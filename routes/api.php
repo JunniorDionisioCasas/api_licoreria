@@ -131,16 +131,9 @@ Route::group(['middleware' => ["auth:sanctum"]], function(){
         Route::post('/cliente/{id}', 'update_cliente');
         Route::delete('/cliente/{id}', 'destroy_cliente');
     });
-});
 
-Route::get('/link', function () {        
-    $target = '/home/licoreri/api.licoreriasansebastian.com/storage/app/public/invoices';
-    $shortcut = '/home/licoreri/public_html/api_public/public/invoices';
-    symlink($target, $shortcut);
-});
-
-Route::get('/linksecond', function () {        
-    $target = '/home/licoreri/api.licoreriasansebastian.com/storage/app/public';
-    $shortcut = '/home/licoreri/public_html/api_public/public/storage';
-    symlink($target, $shortcut);
+    Route::controller(PedidoController::class)->group(function () {
+        Route::get('/pedidos_por_cliente/{id}', 'index_by_user');
+        Route::post('/recibido/{id}', 'received');
+    });
 });

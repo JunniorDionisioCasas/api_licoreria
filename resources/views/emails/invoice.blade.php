@@ -6,7 +6,7 @@ Te enviamos tu recibo de compra.
 Se adjunta el comprobante de su compra realizada.
 @endcomponent
 
-@component('mail::button', ['url' => 'https://licoreriasansebastian.com/home'])
+@component('mail::button', ['url' => 'https://licoreriasansebastian.com/historial_compras'])
 Ver mis compras
 @endcomponent
 
