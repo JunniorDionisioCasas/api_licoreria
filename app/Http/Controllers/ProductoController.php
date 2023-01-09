@@ -159,15 +159,33 @@ class ProductoController extends Controller
         $productos = Producto::join('categorias', 'productos.id_categoria', 'categorias.id_categoria')
                             ->join('marcas', 'productos.id_marca', 'marcas.id_marca')
                             ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre')
-                            ->whereBetween('productos.prd_precio', [$min_price, $max_price]);
+                            ->whereBetween('productos.prd_precio', [$min_price, $max_price])
+                            ->where(function($query) use($array_c) {
+                                foreach($array_c as $q){
+                                    $query->orWhere('productos.id_categoria', $q);
+                                }
+                            })
+                            ->where(function($query) use($array_m) {
+                                foreach($array_m as $q){
+                                    $query->orWhere('productos.id_marca', $q);
+                                }
+                            });
         
-        foreach($array_c as $q){
-            $productos = $productos->where('productos.id_categoria', $q);
-        }
+        /* $productos = $productos->where(
+            function($query) use($array_c) {
+                foreach($array_c as $q){
+                    $query->orWhere('productos.id_categoria', $q);
+                }
+            }
+        );
 
-        foreach($array_m as $q){
-            $productos = $productos->where('productos.id_marca', $q);
-        }
+        $productos = $productos->where(
+            function($query) use($array_m) {
+                foreach($array_m as $q){
+                    $query->orWhere('productos.id_marca', $q);
+                }
+            }
+        ); */
         
         $productos = $productos->get();
 
