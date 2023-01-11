@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::controller(ProductoController::class)->group(function () {
+    Route::get('/all_products', 'indexCrud');
     Route::get('/productos', 'index');
     Route::post('/producto', 'store');
     Route::get('/producto/{id}', 'show');
@@ -30,6 +31,7 @@ Route::controller(ProductoController::class)->group(function () {
     Route::get('/count_productos', 'info_filtro');
     Route::get('/producto/buscar/{searchParams}', 'search_by_filtro');
     Route::put('/producto_cont/{id}', 'count_vistas');
+    Route::get('/products_discount', 'products_with_discount');
     Route::get('/data_homepage', 'home_data');
 });
 

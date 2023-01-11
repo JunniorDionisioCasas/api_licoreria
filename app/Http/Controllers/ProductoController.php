@@ -10,15 +10,31 @@ use App\Models\Categoria;
 use App\Models\Marca;
 use App\Models\Proveedor;
 use App\Models\Detalle_pedido;
+use App\Models\Descuento;
 
 class ProductoController extends Controller
 {
+    public function indexCrud()
+    {
+        $productos = Producto::join('categorias', 'productos.id_categoria', 'categorias.id_categoria')
+                            ->join('marcas', 'productos.id_marca', 'marcas.id_marca')
+                            ->join('proveedores', 'productos.id_proveedor', 'proveedores.id_proveedor')
+                            ->leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                            ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre', 'proveedores.prv_nombre')
+                            ->selectRaw('productos.prd_precio * (1-dsc_cantidad/100) as precioConDescuento')
+                            ->get();
+        return $productos;
+    }
+
     public function index()
     {
         $productos = Producto::join('categorias', 'productos.id_categoria', 'categorias.id_categoria')
                             ->join('marcas', 'productos.id_marca', 'marcas.id_marca')
                             ->join('proveedores', 'productos.id_proveedor', 'proveedores.id_proveedor')
-                            ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre', 'proveedores.*')
+                            ->leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                            ->selectRaw('productos.*, categorias.ctg_nombre, marcas.mrc_nombre, proveedores.prv_nombre, descuentos.dsc_cantidad,
+                                        IF(descuentos.dsc_estado = 1, productos.prd_precio * (1-descuentos.dsc_cantidad/100), null) as precioConDescuento')
+                            ->where('productos.prd_stock', '>=', 1)
                             ->get();
         return $productos;
     }
@@ -207,6 +223,17 @@ class ProductoController extends Controller
         $producto->save();
 
         return true;
+    }
+
+    public function products_with_discount()
+    {
+        $productsWithDiscount = Producto::join('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                                        ->where('productos.prd_stock', '>=', 1)
+                                        ->where('descuentos.dsc_estado', '1')
+                                        ->select('productos.*')
+                                        ->selectRaw('productos.prd_precio * (1-descuentos.dsc_cantidad/100) as precioConDescuento')
+                                        ->get();
+        return $productsWithDiscount;
     }
 
     public function home_data()
