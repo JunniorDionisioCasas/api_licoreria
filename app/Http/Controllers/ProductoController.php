@@ -21,7 +21,7 @@ class ProductoController extends Controller
                             ->join('proveedores', 'productos.id_proveedor', 'proveedores.id_proveedor')
                             ->leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
                             ->select('productos.*', 'categorias.ctg_nombre', 'marcas.mrc_nombre', 'proveedores.prv_nombre')
-                            ->selectRaw('productos.prd_precio * (1-dsc_cantidad/100) as precioConDescuento')
+                            ->selectRaw('ROUND(productos.prd_precio * (1-dsc_cantidad/100), 1) as precioConDescuento')
                             ->get();
         return $productos;
     }
@@ -33,7 +33,7 @@ class ProductoController extends Controller
                             ->join('proveedores', 'productos.id_proveedor', 'proveedores.id_proveedor')
                             ->leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
                             ->selectRaw('productos.*, categorias.ctg_nombre, marcas.mrc_nombre, proveedores.prv_nombre, descuentos.dsc_cantidad,
-                                        IF(descuentos.dsc_estado = 1, productos.prd_precio * (1-descuentos.dsc_cantidad/100), null) as precioConDescuento')
+                                        IF(descuentos.dsc_estado = 1, ROUND(productos.prd_precio * (1-descuentos.dsc_cantidad/100), 1), null) as precioConDescuento')
                             ->where('productos.prd_stock', '>=', 1)
                             ->get();
         return $productos;
@@ -230,8 +230,8 @@ class ProductoController extends Controller
         $productsWithDiscount = Producto::join('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
                                         ->where('productos.prd_stock', '>=', 1)
                                         ->where('descuentos.dsc_estado', '1')
-                                        ->select('productos.*')
-                                        ->selectRaw('productos.prd_precio * (1-descuentos.dsc_cantidad/100) as precioConDescuento')
+                                        ->select('productos.*', 'descuentos.dsc_cantidad')
+                                        ->selectRaw('ROUND(productos.prd_precio * (1-descuentos.dsc_cantidad/100), 1) as precioConDescuento')
                                         ->get();
         return $productsWithDiscount;
     }
