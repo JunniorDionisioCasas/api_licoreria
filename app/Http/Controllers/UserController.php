@@ -67,7 +67,8 @@ class UserController extends Controller
             return response()->json([
                                         "status" => 0,
                                         "msg" => "Los datos no son válidos.",
-                                    ], 404);
+                                        "validator_errors" => $validator->errors(),
+                                    ], 500);
         }
 
         // Retrieve the validated input...
@@ -396,7 +397,8 @@ class UserController extends Controller
             return response()->json([
                                         "status" => 0,
                                         "msg" => "Los datos no son válidos.",
-                                    ], 404);
+                                        "validator_errors" => $validator->errors(),
+                                    ], 500);
         }
 
         // Retrieve the validated input...
