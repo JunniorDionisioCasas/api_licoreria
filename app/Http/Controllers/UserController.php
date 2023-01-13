@@ -419,7 +419,8 @@ class UserController extends Controller
                     "token_type" => "Bearer",
                     "user_name" => $user->name . ' ' . $user->usr_apellidos,
                     "user_mail" => $user->email,
-                    "user_mail" => $user->drc_direccion
+                    "user_address" => $user->drc_direccion,
+                    "user_profile_photo_path" => $user->profile_photo_path
                 ]);
             }else{
                 return response()->json([
