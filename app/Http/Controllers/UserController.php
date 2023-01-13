@@ -360,12 +360,47 @@ class UserController extends Controller
 
     /* register function only for clients */
     public function register(Request $request){
-        $request->validate([
-          'name' => 'required',
-          'email' => 'required|unique:users',
-          'usr_num_documento' => 'required|unique:users',
-          'password' => 'required|confirmed'
-        ]);
+        // validation
+        $rules = [
+            'name' => 'required',
+            'usr_apellidos' => 'required',
+            'email' => 'required|unique:users',
+            'usr_num_documento' => 'required|unique:users',
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(8)
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols()
+            ]
+        ];
+        $messages = [
+            'required' => 'El campo :attribute es requerido.',
+            'unique' => 'El campo :attribute ya está en uso.',
+            'confirmed' => 'El campo :attribute no coincide con su campo de confirmación :other.'
+        ];
+        $atributtes = [
+            'email' => 'correo electrónico',
+            'name' => 'nombre',
+            'usr_apellidos' => 'apellidos',
+            'password' => 'contraseña',
+            'password_confirmation' => 'confirmación de contraseña',
+        ];
+        $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
+
+        if ($validator->fails()) {
+            /* return redirect('post/create')
+                        ->withErrors($validator)
+                        ->withInput(); */
+            return response()->json([
+                                        "status" => 0,
+                                        "msg" => "Los datos no son válidos.",
+                                    ], 404);
+        }
+
+        // Retrieve the validated input...
+        $validated = $validator->validated();
     
         $user = new User();
         $user->id_cargo = 1; //id_cargo:1=client
