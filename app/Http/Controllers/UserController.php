@@ -57,6 +57,7 @@ class UserController extends Controller
             'usr_apellidos' => 'apellidos',
             'password' => 'contraseña',
             'password_confirmation' => 'confirmación de contraseña',
+            'usr_num_documento' => 'DNI'
         ];
         $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
 
@@ -151,7 +152,20 @@ class UserController extends Controller
             ]
         ];
         // ->uncompromised()
-        $validator = Validator::make( $request->all(), $rules );
+        $messages = [
+            'required' => 'El campo :attribute es requerido.',
+            'unique' => 'El campo :attribute ya está en uso.',
+            'confirmed' => 'El campo :attribute no coincide con su campo de confirmación :other.'
+        ];
+        $atributtes = [
+            'email' => 'correo electrónico',
+            'name' => 'nombre',
+            'usr_apellidos' => 'apellidos',
+            'password' => 'contraseña',
+            'password_confirmation' => 'confirmación de contraseña',
+            'usr_num_documento' => 'DNI'
+        ];
+        $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
 
         if ($validator->fails()) {
             return response()->json([
@@ -264,7 +278,17 @@ class UserController extends Controller
                 Rule::unique('users')->ignore($id),
             ]
         ];
-        $validator = Validator::make( $request->all(), $rules );
+        $messages = [
+            'required' => 'El campo :attribute es requerido.',
+            'unique' => 'El campo :attribute ya está en uso.'
+        ];
+        $atributtes = [
+            'email' => 'correo electrónico',
+            'name' => 'nombre',
+            'usr_apellidos' => 'apellidos',
+            'usr_num_documento' => 'DNI'
+        ];
+        $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
 
         if ($validator->fails()) {
             return response()->json([
@@ -379,7 +403,7 @@ class UserController extends Controller
         $messages = [
             'required' => 'El campo :attribute es requerido.',
             'unique' => 'El campo :attribute ya está en uso.',
-            'confirmed' => 'El campo :attribute no coincide con su campo de confirmación :other.'
+            'confirmed' => 'El campo :attribute no coincide con su campo de confirmación.'
         ];
         $atributtes = [
             'email' => 'correo electrónico',
@@ -387,6 +411,7 @@ class UserController extends Controller
             'usr_apellidos' => 'apellidos',
             'password' => 'contraseña',
             'password_confirmation' => 'confirmación de contraseña',
+            'usr_num_documento' => 'DNI'
         ];
         $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
 
