@@ -67,8 +67,9 @@ class CategoriaController extends Controller
             $categoriasAsString = $categoriasAsString . $categorias[$i]->ctg_nombre;
             if( $i != ($length-1) ) $categoriasAsString = $categoriasAsString . ", ";
         }
-        // $response = new \stdClass();
-        $response = json_encode($categoriasAsString);
+        $response = new \stdClass();
+        $response->categories = $categoriasAsString;
+        // $response = json_encode($categoriasAsString);
         return $response;
     }
 }
