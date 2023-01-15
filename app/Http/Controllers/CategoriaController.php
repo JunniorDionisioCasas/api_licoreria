@@ -57,4 +57,16 @@ class CategoriaController extends Controller
         $categoria = Categoria::destroy($id);
         return $categoria;
     }
+
+    public function index_names()
+    {
+        $categorias = Categoria::select('ctg_nombre')->get();
+        $length = count($categorias);
+        $categoriasAsString = '';
+        for($i=0; $i<$length; $i++) {
+            $categoriasAsString = $categoriasAsString . $categorias[$i]->ctg_nombre;
+            if( $i != ($length-1) ) $categoriasAsString = $categoriasAsString . ", ";
+        }
+        return $categoriasAsString;
+    }
 }

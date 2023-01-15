@@ -41,6 +41,7 @@ Route::controller(CategoriaController::class)->group(function () {
     Route::get('/categoria/{id}', 'show');
     Route::put('/categoria/{id}', 'update');
     Route::delete('/categoria/{id}', 'destroy');
+    Route::post('/categorias_nombres', 'index_names');
 });
 
 Route::controller(MarcaController::class)->group(function () {
