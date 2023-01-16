@@ -479,9 +479,12 @@ class UserController extends Controller
                     "user_id" => $user->id,
                     "access_token" => $token,
                     "token_type" => "Bearer",
-                    "user_name" => $user->name . ' ' . $user->usr_apellidos,
+                    "user_name" => $user->name,
+                    "usr_apellidos" => $user->usr_apellidos,
                     "user_mail" => $user->email,
                     "user_address" => $user->drc_direccion,
+                    "usr_num_documento" => $user->usr_num_documento,
+                    "usr_fecha_nacimiento" => $user->usr_fecha_nacimiento,
                     "user_profile_photo_path" => $user->profile_photo_path
                 ]);
             }else{
