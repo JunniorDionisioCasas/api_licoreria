@@ -276,17 +276,27 @@ class UserController extends Controller
             'email' => [
                 'required',
                 Rule::unique('users')->ignore($id),
+            ],
+            'password' => [
+                'sometimes',
+                'confirmed',
+                Password::min(8)
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols()
             ]
         ];
         $messages = [
             'required' => 'El campo :attribute es requerido.',
-            'unique' => 'El campo :attribute ya está en uso.'
+            'unique' => 'El campo :attribute ya está en uso.',
+            'confirmed' => 'El campo :attribute no coincide con su campo de confirmación.'
         ];
         $atributtes = [
             'email' => 'correo electrónico',
             'name' => 'nombre',
             'usr_apellidos' => 'apellidos',
-            'usr_num_documento' => 'DNI'
+            'usr_num_documento' => 'DNI',
+            'password' => 'contraseña'
         ];
         $validator = Validator::make( $request->all(), $rules, $messages, $atributtes );
 
@@ -306,7 +316,10 @@ class UserController extends Controller
                         ->first();
         
         if (!$cliente) {
-            return false;
+            return response()->json([
+                                        "status" => 0,
+                                        "msg" => "Usuario no encontrado."
+                                    ], 404);
         }
         
         $cliente->name = $request->name;
