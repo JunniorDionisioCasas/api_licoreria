@@ -12,17 +12,41 @@ use App\Models\Descuento;
 use App\Models\Detalle_pedido;
 use App\Models\Pedido_descuento;
 use App\Models\Producto;
+use Carbon\Carbon;
 
 class ReportesController extends Controller
 {
-    public function index()
+    public function admin_home_info()
     {
-        //
-    }
+        $weekDays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        $today = Carbon::now('-05:00');
+        $todayDay = $today->isoFormat('d');
+        $barChartLabels = [];
+        for($i=0; $i<7; $i++){
+            $weekIndex = $todayDay + $i + 1;
+            if($weekIndex>6) $weekIndex = $weekIndex - 7;
+            $barChartLabels[$i] = $weekDays[$weekIndex];
+        }
 
-    public function show($id)
-    {
-        //
+        $barChartData = Pedido::selectRaw('SUBSTRING(pdd_fecha_entrega, 1, 10) AS pdd_fecha,
+                                            COALESCE(SUM(pdd_total), 0) AS total_dia,
+                                            COUNT(id_pedido) as num_ventas_dia')
+                            ->whereBetween('pdd_fecha_entrega', [Carbon::now('-05:00')->subDays(6)->format('Y-m-d 00:00:00'), Carbon::now('-05:00')->format('Y-m-d 23:59:59')])
+                            ->groupByRaw('SUBSTRING(pdd_fecha_entrega, 0, 10), pdd_fecha')
+                            ->take(7)
+                            ->get();
+        
+        $pieData = Detalle_pedido::join('productos', 'detalles_pedidos.id_producto', 'productos.id_producto')
+                                ->selectRaw('productos.prd_nombre, SUM(detalles_pedidos.dtl_cantidad) AS cant_vendidos')
+                                ->groupByRaw('productos.prd_nombre')
+                                ->get();
+
+        $home_data = new \stdClass;
+        $home_data->barChartLabels = $barChartLabels;
+        $home_data->barChartData = $barChartData;
+        $home_data->pieData = $pieData;
+        
+        return $home_data;
     }
 
     public function reporte_ventas($dateFrom, $dateUntil, $idProducto, $idTipoPedido, $idCliente)

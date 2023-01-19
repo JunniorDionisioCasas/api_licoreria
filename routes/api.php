@@ -118,6 +118,7 @@ Route::controller(UserController::class)->group(function () {
 
 Route::controller(ReportesController::class)->group(function () {
     Route::get('/reporte_ventas/{dateFrom}/{dateUntil}/{idProducto}/{idTipoPedido}/{idCliente}', 'reporte_ventas');
+    Route::get('/admin_home_info', 'admin_home_info');
 });
 
 Route::controller(UserController::class)->group(function () {
