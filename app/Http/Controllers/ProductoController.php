@@ -76,7 +76,11 @@ class ProductoController extends Controller
 
     public function show($id)
     {
-        $producto = Producto::find($id);
+        $producto = Producto::leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                            ->select('productos.*')
+                            ->selectRaw('ROUND(productos.prd_precio * (1-dsc_cantidad/100), 1) as precioConDescuento')
+                            ->where('productos.id_producto', $id)
+                            ->first();
         return $producto;
     }
 
@@ -241,7 +245,10 @@ class ProductoController extends Controller
         $marcas = Marca::whereNotNull('mrc_image_path')
                     ->get();
 
-        $prd_mas_vistos = Producto::where('prd_stock', '>=', 1)
+        $prd_mas_vistos = Producto::leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                                ->select('productos.*')
+                                ->selectRaw('ROUND(productos.prd_precio * (1-dsc_cantidad/100), 1) as precioConDescuento')
+                                ->where('prd_stock', '>=', 1)
                                 ->orderBy('prd_contador_vistas', 'desc')
                                 ->take(5)
                                 ->get();
@@ -254,16 +261,26 @@ class ProductoController extends Controller
         
         $data_prd_mas_vendidos = [];
         foreach($id_prd_mas_vendidos as $p){
-            $data_prd = Producto::find($p->id_producto);
-            array_push($data_prd_mas_vendidos, $data_prd);
+            $data_prd = Producto::leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                                ->select('productos.*')
+                                ->selectRaw('ROUND(productos.prd_precio * (1-dsc_cantidad/100), 1) as precioConDescuento')
+                                ->where('productos.id_producto', $p->id_producto)
+                                ->where('productos.prd_stock', '>=', 1)
+                                ->first();
+            if($data_prd != null) array_push($data_prd_mas_vendidos, $data_prd);
         }
         
-        $prd_nuevos = Producto::where('prd_stock', '>=', 1)
+        $prd_nuevos = Producto::leftJoin('descuentos', 'productos.id_descuento', 'descuentos.id_descuento')
+                            ->select('productos.*')
+                            ->selectRaw('ROUND(productos.prd_precio * (1-dsc_cantidad/100), 1) as precioConDescuento')
+                            ->where('prd_stock', '>=', 1)
                             ->latest()
                             ->take(4)
                             ->get();
 
         $prd_en_oferta = Producto::join('descuentos', 'productos.id_descuento', '=', 'descuentos.id_descuento')
+                            ->select('productos.*')
+                            ->selectRaw('ROUND(productos.prd_precio * (1-dsc_cantidad/100), 1) as precioConDescuento')
                             ->where('productos.prd_stock', '>=', 1)
                             ->whereNotNull('productos.id_descuento')
                             ->orderBy('descuentos.dsc_cantidad', 'desc')
