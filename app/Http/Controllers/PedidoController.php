@@ -352,13 +352,13 @@ class PedidoController extends Controller
         Storage::disk('invoices')->put($cmp_nombre_archivo, $pdf);
         $pathNewFile = public_path().'/invoices/'.$cmp_nombre_archivo;
 
-        // $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
-        // $folder_destination = '/invoices/';
-        // $pdf->move($rootDir.$folder_destination, $cmp_nombre_archivo);
-        // $file_path = env("APP_URL") . $folder_destination . $cmp_nombre_archivo;
+        /* $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
+        $folder_destination = 'invoices/';
+        $pdf->move($rootDir.'/'.$folder_destination, $cmp_nombre_archivo);
+        $file_path = env("APP_URL") . $folder_destination . $cmp_nombre_archivo; */
 
         Mail::to($dataCompra->userMail)->send(new InvoiceMailable($pathNewFile));
 
-        return env("APP_URL").'invoices/'.$cmp_nombre_archivo;
+        return $pathNewFile;
     }
 }
