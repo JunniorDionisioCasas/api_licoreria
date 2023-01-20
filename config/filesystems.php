@@ -47,7 +47,7 @@ return [
         //added disk
         'invoices' => [
             'driver' => 'local',
-            'root' => public_path().'/invoices',
+            'root' => realpath($_SERVER["DOCUMENT_ROOT"]).'/invoices',
             'url' => env('APP_URL').'/invoices',
             'visibility' => 'public',
             'throw' => false,
