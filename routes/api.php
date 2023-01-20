@@ -48,7 +48,7 @@ Route::controller(MarcaController::class)->group(function () {
     Route::get('/marcas', 'index');
     Route::post('/marca', 'store');
     Route::get('/marca/{id}', 'show');
-    Route::put('/marca/{id}', 'update');
+    Route::post('/marca/{id}', 'update');
     Route::delete('/marca/{id}', 'destroy');
 });
 

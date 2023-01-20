@@ -78,7 +78,7 @@ class ReportesController extends Controller
                         /* ->join('detalles_pedidos', 'pedidos.id_pedido', 'detalles_pedidos.id_pedido')
                         ->join('productos', 'detalles_pedidos.id_producto', 'productos.id_producto')*/
                         ->select('pedidos.id_pedido', 'pedidos.pdd_total', 'pedidos.pdd_fecha_entrega', 'pedidos.pdd_estado',
-                                'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero',
+                                'comprobantes.cmp_serie', 'comprobantes.cmp_tipo', 'comprobantes.cmp_numero', 'comprobantes.cmp_pdf_path',
                                 'tipos_pedidos.id_tipo_pedido', 'tipos_pedidos.tpe_nombre', 'users.name', 'users.usr_apellidos',
                                 /* 'productos.id_producto', 'productos.prd_nombre' */);
         
