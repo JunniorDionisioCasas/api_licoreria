@@ -350,7 +350,7 @@ class PedidoController extends Controller
         $cmp_nombre_archivo = str_replace( ' ', '-', $cmp_nombre_archivo);
         
         Storage::disk('invoices')->put($cmp_nombre_archivo, $pdf);
-        $pathNewFile = public_path().'/invoices/'.$cmp_nombre_archivo;
+        $pathNewFile = env("APP_URL").'/invoices/'.$cmp_nombre_archivo;
 
         /* $rootDir = realpath($_SERVER["DOCUMENT_ROOT"]);
         $folder_destination = 'invoices/';
