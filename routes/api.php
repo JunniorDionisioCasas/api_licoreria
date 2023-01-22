@@ -124,6 +124,7 @@ Route::controller(ReportesController::class)->group(function () {
 Route::controller(UserController::class)->group(function () {
     Route::post('/register', 'register');
     Route::post('/login', 'login');
+    Route::post('/googleVerifiedLogin', 'googleVerifiedLogin');
 });
 
 Route::group(['middleware' => ["auth:sanctum"]], function(){

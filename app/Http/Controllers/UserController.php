@@ -13,6 +13,8 @@ use App\Models\Cargo;
 use App\Models\Detalle_user;
 use App\Models\Direccion;
 use Illuminate\Support\Facades\File;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
 
 class UserController extends Controller
 {
@@ -530,5 +532,46 @@ class UserController extends Controller
             "status" => 1,
             "msg" => "Cierre de Sesión",
         ]);
+    }
+
+    public function googleVerifiedLogin(Request $request){
+        /* try {
+            $decryptedemail = Crypt::decryptString($request->encryptedEmail);
+        } catch (DecryptException $e) {
+            return response()->json([
+                "status" => 0,
+                "msg" => "Error al verificar, intente más tarde",
+            ], 500);
+        }
+        $decryptedemail = $request->encryptedEmail; */
+
+        $user = User::leftJoin('direcciones', 'users.id_direccion', 'direcciones.id_direccion')
+                    ->where("users.email", "=", $request->email)
+                    ->first();
+
+        if( isset($user->id) ){
+            //creamos el token
+            $token = $user->createToken("auth_token")->plainTextToken;
+            //si está todo ok
+            return response()->json([
+                "status" => 1,
+                "msg" => "¡Usuario logueado exitosamente!",
+                "user_id" => $user->id,
+                "access_token" => $token,
+                "token_type" => "Bearer",
+                "user_name" => $user->name,
+                "usr_apellidos" => $user->usr_apellidos,
+                "user_mail" => $user->email,
+                "user_address" => $user->drc_direccion,
+                "usr_num_documento" => $user->usr_num_documento,
+                "usr_fecha_nacimiento" => $user->usr_fecha_nacimiento,
+                "user_profile_photo_path" => $user->profile_photo_path
+            ]);
+        }else{
+            return response()->json([
+                "status" => 0,
+                "msg" => "Usuario no registrado",
+            ], 404);
+        }
     }
 }
